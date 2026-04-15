@@ -25,10 +25,7 @@ export class PermissionManager {
     this.logger.info(`Permission requested: ${event.message}`);
 
     try {
-      const [choice] = await Promise.all([
-        this.notificationService.showPermissionRequest(event.message),
-        this.fireSideEffects(event.message),
-      ]);
+      const choice = await this.awaitUserChoice(event.message);
 
       const response: PermissionResponse = {
         eventId: event.id,
@@ -52,8 +49,25 @@ export class PermissionManager {
     return [...this.pending.values()];
   }
 
-  private async fireSideEffects(message: string): Promise<void> {
-    this.systemNotifService.notifyPermission(message);
-    this.soundService.playPermissionAlert();
+  private async awaitUserChoice(message: string): Promise<'Allow' | 'Deny'> {
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const settle = (choice: 'Allow' | 'Deny' | undefined): void => {
+        if (settled || !choice) {
+          return;
+        }
+
+        settled = true;
+        resolve(choice);
+      };
+
+      void this.notificationService.showPermissionRequest(message).then(settle).catch(() => undefined);
+      void this.systemNotifService.showPermissionRequest(message).then(settle).catch(() => undefined);
+
+      if (!this.systemNotifService.usesNativeSound()) {
+        this.soundService.playPermissionAlert();
+      }
+    });
   }
 }

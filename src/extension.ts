@@ -66,7 +66,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     logger.info(`Task completed event received: ${event.message}`);
     void notificationService.showTaskCompleted(event.message);
     systemNotifService.notifyCompletion(event.message);
-    soundService.playTaskComplete();
+
+    if (!systemNotifService.usesNativeSound()) {
+      soundService.playTaskComplete();
+    }
   });
 
   transport.onEvent((event) => {
