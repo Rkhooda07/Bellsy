@@ -1,0 +1,98 @@
+{
+  "name": "ai-agent-notifier",
+  "displayName": "AI Agent Notifier",
+  "description": "Instant alerts when your AI agent needs attention or completes a task.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:agentNotifier.simulatePermission",
+    "onCommand:agentNotifier.simulateComplete",
+    "onCommand:agentNotifier.showPendingList"
+  ],
+  "main": "./out/extension.js",
+  "icon": "assets/icon.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentNotifier.simulatePermission",
+        "title": "AI Notifier: Simulate Permission Request"
+      },
+      {
+        "command": "agentNotifier.simulateComplete",
+        "title": "AI Notifier: Simulate Task Completed"
+      },
+      {
+        "command": "agentNotifier.showPendingList",
+        "title": "AI Notifier: Show Pending Requests"
+      }
+    ],
+    "configuration": {
+      "title": "AI Agent Notifier",
+      "properties": {
+        "agentNotifier.transport": {
+          "type": "string",
+          "enum": [
+            "file",
+            "http"
+          ],
+          "default": "http",
+          "description": "Transport used to receive AI agent events."
+        },
+        "agentNotifier.httpPort": {
+          "type": "number",
+          "default": 9001,
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Loopback HTTP port used by the extension."
+        },
+        "agentNotifier.watchFilePath": {
+          "type": "string",
+          "default": "/tmp/agent_event.json",
+          "description": "Path to the JSON file watched in file transport mode."
+        },
+        "agentNotifier.soundEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable notification sounds."
+        },
+        "agentNotifier.soundVolume": {
+          "type": "number",
+          "default": 45,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Preferred playback volume. Applied on supported platforms."
+        },
+        "agentNotifier.httpResponseTimeoutMs": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 1000,
+          "description": "How long the HTTP transport waits for an allow or deny response."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "node-notifier": "^10.0.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/node-notifier": "^8.0.5",
+    "@types/uuid": "^10.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.5"
+  }
+}
