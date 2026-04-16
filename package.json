@@ -75,6 +75,17 @@
           "default": 300000,
           "minimum": 1000,
           "description": "How long the HTTP transport waits for an allow or deny response."
+        },
+        "agentNotifier.permissionReminderEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show repeated in-editor reminders while permission requests remain unanswered."
+        },
+        "agentNotifier.permissionReminderIntervalSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "description": "How often to repeat the pending permission reminder."
         }
       }
     }

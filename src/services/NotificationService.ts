@@ -21,4 +21,16 @@ export class NotificationService {
   showError(message: string): Thenable<string | undefined> {
     return vscode.window.showErrorMessage(`AI Agent Notifier Error: ${message}`);
   }
+
+  async showPendingReminder(count: number): Promise<void> {
+    const suffix = count === 1 ? 'request is' : 'requests are';
+    const action = await vscode.window.showWarningMessage(
+      `${count} AI agent permission ${suffix} still waiting for your response.`,
+      'Review Pending Requests',
+    );
+
+    if (action === 'Review Pending Requests') {
+      await vscode.commands.executeCommand('agentNotifier.showPendingList');
+    }
+  }
 }

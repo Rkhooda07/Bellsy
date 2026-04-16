@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import {
   DEFAULT_HTTP_PORT,
   DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
+  DEFAULT_PERMISSION_REMINDER_ENABLED,
+  DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
   DEFAULT_WATCH_FILE_PATH,
 } from '../core/constants';
 import { AgentNotifierConfig } from '../core/types';
@@ -36,6 +38,14 @@ export class TransportFactory {
         soundEnabled: config.get<boolean>('soundEnabled', true),
         soundVolume: config.get<number>('soundVolume', 100),
         httpResponseTimeoutMs: config.get<number>('httpResponseTimeoutMs', DEFAULT_HTTP_RESPONSE_TIMEOUT_MS),
+        permissionReminderEnabled: config.get<boolean>(
+          'permissionReminderEnabled',
+          DEFAULT_PERMISSION_REMINDER_ENABLED,
+        ),
+        permissionReminderIntervalSeconds: config.get<number>(
+          'permissionReminderIntervalSeconds',
+          DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
+        ),
       },
       logger,
     );

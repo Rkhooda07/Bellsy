@@ -9,6 +9,7 @@ import { SystemNotifService } from './SystemNotifService';
 
 export class PermissionManager {
   private readonly pending = new Map<string, AgentEvent>();
+  private reminderTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -17,11 +18,14 @@ export class PermissionManager {
     private readonly statusBarService: StatusBarService,
     private readonly dispatcher: ResponseDispatcher,
     private readonly logger: OutputChannelLogger,
+    private readonly reminderEnabled: boolean,
+    private readonly reminderIntervalMs: number,
   ) {}
 
   async handle(event: AgentEvent): Promise<void> {
     this.pending.set(event.id, event);
     this.statusBarService.addPending(event);
+    this.ensureReminderLoop();
     this.logger.info(`Permission requested: ${event.message}`);
 
     try {
@@ -42,6 +46,7 @@ export class PermissionManager {
     } finally {
       this.pending.delete(event.id);
       this.statusBarService.removePending(event.id);
+      this.stopReminderLoopIfIdle();
     }
   }
 
@@ -69,5 +74,34 @@ export class PermissionManager {
         this.soundService.playPermissionAlert();
       }
     });
+  }
+
+  private ensureReminderLoop(): void {
+    if (!this.reminderEnabled || this.reminderTimer) {
+      return;
+    }
+
+    this.reminderTimer = setInterval(() => {
+      void this.sendReminder();
+    }, this.reminderIntervalMs);
+  }
+
+  private stopReminderLoopIfIdle(): void {
+    if (this.pending.size > 0 || !this.reminderTimer) {
+      return;
+    }
+
+    clearInterval(this.reminderTimer);
+    this.reminderTimer = null;
+  }
+
+  private async sendReminder(): Promise<void> {
+    if (this.pending.size === 0) {
+      this.stopReminderLoopIfIdle();
+      return;
+    }
+
+    this.logger.info(`Permission reminder fired for ${this.pending.size} pending request(s)`);
+    await this.notificationService.showPendingReminder(this.pending.size);
   }
 }

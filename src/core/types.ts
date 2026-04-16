@@ -24,4 +24,6 @@ export interface AgentNotifierConfig {
   soundEnabled: boolean;
   soundVolume: number;
   httpResponseTimeoutMs: number;
+  permissionReminderEnabled: boolean;
+  permissionReminderIntervalSeconds: number;
 }

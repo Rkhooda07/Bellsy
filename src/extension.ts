@@ -5,6 +5,8 @@ import EventBus from './core/EventBus';
 import {
   DEFAULT_HTTP_PORT,
   DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
+  DEFAULT_PERMISSION_REMINDER_ENABLED,
+  DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
   DEFAULT_SOUND_VOLUME,
   DEFAULT_WATCH_FILE_PATH,
 } from './core/constants';
@@ -40,6 +42,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     statusBarService,
     dispatcher,
     logger,
+    config.get<boolean>('permissionReminderEnabled', DEFAULT_PERMISSION_REMINDER_ENABLED),
+    config.get<number>('permissionReminderIntervalSeconds', DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS) * 1000,
   );
 
   const transport = TransportFactory.create(
@@ -50,6 +54,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       soundEnabled: config.get<boolean>('soundEnabled', true),
       soundVolume: config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
       httpResponseTimeoutMs: config.get<number>('httpResponseTimeoutMs', DEFAULT_HTTP_RESPONSE_TIMEOUT_MS),
+      permissionReminderEnabled: config.get<boolean>(
+        'permissionReminderEnabled',
+        DEFAULT_PERMISSION_REMINDER_ENABLED,
+      ),
+      permissionReminderIntervalSeconds: config.get<number>(
+        'permissionReminderIntervalSeconds',
+        DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
+      ),
     },
     logger,
   );
