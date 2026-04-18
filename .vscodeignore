@@ -1,0 +1,10 @@
+src/**
+test/**
+examples/**
+implementation_plan.md
+tsconfig.json
+.gitignore
+package-lock.json
+.vscode/**
+.github/**
+**/*.map

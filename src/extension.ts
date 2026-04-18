@@ -9,6 +9,7 @@ import {
   DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
   DEFAULT_SOUND_VOLUME,
   DEFAULT_WATCH_FILE_PATH,
+  DEFAULT_WATCH_RESPONSE_FILE_PATH,
 } from './core/constants';
 import { AgentEventType } from './core/types';
 import { AgentSimulator } from './simulation/AgentSimulator';
@@ -51,6 +52,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       transport: config.get<'file' | 'http'>('transport', 'http'),
       httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
       watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
+      watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),
       soundEnabled: config.get<boolean>('soundEnabled', true),
       soundVolume: config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
       httpResponseTimeoutMs: config.get<number>('httpResponseTimeoutMs', DEFAULT_HTTP_RESPONSE_TIMEOUT_MS),
@@ -66,7 +68,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     logger,
   );
 
-  if (transport instanceof HttpTransport) {
+  if (transport instanceof HttpTransport || 'send' in transport) {
     dispatcher.setTarget(transport as IResponseTarget);
   }
 
@@ -89,11 +91,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     EventBus.emit(event.type, event);
   });
 
-  await transport.start();
+  try {
+    await transport.start();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Activation failed while starting transport: ${message}`);
+    logger.show();
+    await notificationService.showError(`Failed to start AI Agent Notifier: ${message}`);
+    throw error;
+  }
 
   context.subscriptions.push(
     logger,
     statusBarService,
+    vscode.commands.registerCommand('agentNotifier.showLogs', () => {
+      logger.show();
+    }),
     vscode.commands.registerCommand('agentNotifier.simulatePermission', () => {
       simulator.emitPermissionRequest();
     }),

@@ -1,18 +1,39 @@
 {
   "name": "ai-agent-notifier",
   "displayName": "AI Agent Notifier",
-  "description": "Instant alerts when your AI agent needs attention or completes a task.",
-  "version": "0.1.0",
-  "publisher": "local",
+  "description": "Local notifications for coding agents when they need approval or finish work.",
+  "version": "0.2.0",
+  "publisher": "rkhooda07",
   "license": "MIT",
+  "preview": true,
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
+    "Utilities",
     "Other"
   ],
+  "keywords": [
+    "ai",
+    "agent",
+    "notifications",
+    "codex",
+    "claude-code",
+    "cursor",
+    "permissions",
+    "productivity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rkhooda07/Pingly.git"
+  },
+  "homepage": "https://github.com/Rkhooda07/Pingly#readme",
+  "bugs": {
+    "url": "https://github.com/Rkhooda07/Pingly/issues"
+  },
   "activationEvents": [
     "onStartupFinished",
+    "onCommand:agentNotifier.showLogs",
     "onCommand:agentNotifier.simulatePermission",
     "onCommand:agentNotifier.simulateComplete",
     "onCommand:agentNotifier.showPendingList"
@@ -21,6 +42,10 @@
   "icon": "assets/icon.png",
   "contributes": {
     "commands": [
+      {
+        "command": "agentNotifier.showLogs",
+        "title": "AI Notifier: Show Logs"
+      },
       {
         "command": "agentNotifier.simulatePermission",
         "title": "AI Notifier: Simulate Permission Request"
@@ -58,6 +83,11 @@
           "default": "/tmp/agent_event.json",
           "description": "Path to the JSON file watched in file transport mode."
         },
+        "agentNotifier.watchResponseFilePath": {
+          "type": "string",
+          "default": "/tmp/agent_response.json",
+          "description": "Path written with allow or deny responses in file transport mode."
+        },
         "agentNotifier.soundEnabled": {
           "type": "boolean",
           "default": true,
@@ -92,8 +122,11 @@
   },
   "scripts": {
     "build": "tsc -p ./",
+    "pretest": "npm run build",
+    "test": "node --test test/unit/*.test.js",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package"
+    "package": "vsce package --no-dependencies",
+    "package:verify": "npm test && npm run package"
   },
   "dependencies": {
     "node-notifier": "^10.0.1",
@@ -104,6 +137,8 @@
     "@types/node-notifier": "^8.0.5",
     "@types/uuid": "^10.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.1",
     "typescript": "^5.4.5"
   }
 }

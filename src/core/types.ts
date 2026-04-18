@@ -21,6 +21,7 @@ export interface AgentNotifierConfig {
   transport: 'file' | 'http';
   httpPort: number;
   watchFilePath: string;
+  watchResponseFilePath: string;
   soundEnabled: boolean;
   soundVolume: number;
   httpResponseTimeoutMs: number;

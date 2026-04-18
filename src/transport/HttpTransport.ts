@@ -31,7 +31,10 @@ export class HttpTransport implements ITransport, IResponseTarget {
     });
 
     await new Promise<void>((resolve, reject) => {
-      this.server?.once('error', reject);
+      this.server?.once('error', (error) => {
+        this.logger.error(`HTTP transport failed to start: ${error instanceof Error ? error.message : String(error)}`);
+        reject(error);
+      });
       this.server?.listen(this.port, DEFAULT_HTTP_HOST, () => resolve());
     });
 
@@ -103,13 +106,18 @@ export class HttpTransport implements ITransport, IResponseTarget {
       res.end(JSON.stringify({ status: 'accepted', id: event.id }));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`HTTP transport request failed: ${message}`);
-      res.writeHead(400, { 'content-type': 'application/json' });
+      const statusCode = this.statusCodeForError(error);
+      this.logger.warn(`HTTP transport request failed (${statusCode}): ${message}`);
+      res.writeHead(statusCode, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: message }));
     }
   }
 
   private async awaitPermissionResponse(event: AgentEvent): Promise<PermissionResponse> {
+    if (!this.callback) {
+      throw new Error('No event handler registered for permission requests.');
+    }
+
     const responsePromise = new Promise<PermissionResponse>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(event.id);
@@ -119,8 +127,29 @@ export class HttpTransport implements ITransport, IResponseTarget {
       this.pendingRequests.set(event.id, { resolve, reject, timeout });
     });
 
-    this.callback?.(event);
+    this.callback(event);
     return responsePromise;
+  }
+
+  private statusCodeForError(error: unknown): number {
+    if (error instanceof SyntaxError) {
+      return 400;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.startsWith('Unknown event type:') || message.includes('Event ')) {
+      return 400;
+    }
+
+    if (message.startsWith('Timed out waiting for a response')) {
+      return 504;
+    }
+
+    if (message === 'No event handler registered for permission requests.') {
+      return 503;
+    }
+
+    return 500;
   }
 
   private readBody(req: http.IncomingMessage): Promise<string> {

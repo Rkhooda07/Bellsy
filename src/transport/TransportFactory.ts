@@ -5,7 +5,9 @@ import {
   DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
   DEFAULT_PERMISSION_REMINDER_ENABLED,
   DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
+  DEFAULT_SOUND_VOLUME,
   DEFAULT_WATCH_FILE_PATH,
+  DEFAULT_WATCH_RESPONSE_FILE_PATH,
 } from '../core/constants';
 import { AgentNotifierConfig } from '../core/types';
 import { OutputChannelLogger } from '../services/OutputChannelLogger';
@@ -17,7 +19,11 @@ import { ITransport } from './ITransport';
 export class TransportFactory {
   static create(config: AgentNotifierConfig, logger: OutputChannelLogger): ITransport {
     if (config.transport === 'file') {
-      return new FileWatchTransport(config.watchFilePath || DEFAULT_WATCH_FILE_PATH, logger);
+      return new FileWatchTransport(
+        config.watchFilePath || DEFAULT_WATCH_FILE_PATH,
+        config.watchResponseFilePath || DEFAULT_WATCH_RESPONSE_FILE_PATH,
+        logger,
+      );
     }
 
     return new HttpTransport(
@@ -35,8 +41,9 @@ export class TransportFactory {
         transport: config.get<'file' | 'http'>('transport', 'http'),
         httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
         watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
+        watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),
         soundEnabled: config.get<boolean>('soundEnabled', true),
-        soundVolume: config.get<number>('soundVolume', 100),
+        soundVolume: config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
         httpResponseTimeoutMs: config.get<number>('httpResponseTimeoutMs', DEFAULT_HTTP_RESPONSE_TIMEOUT_MS),
         permissionReminderEnabled: config.get<boolean>(
           'permissionReminderEnabled',
