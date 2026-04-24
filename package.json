@@ -40,6 +40,9 @@
     "onCommand:agentNotifier.showPendingList"
   ],
   "main": "./out/extension.js",
+  "bin": {
+    "pingly-run": "./out/cli/pingly-run.js"
+  },
   "icon": "assets/icon.png",
   "contributes": {
     "commands": [
