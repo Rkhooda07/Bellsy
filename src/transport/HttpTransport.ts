@@ -2,7 +2,7 @@ import * as http from 'http';
 
 import { DEFAULT_HTTP_HOST } from '../core/constants';
 import { parseEvent } from '../core/EventValidator';
-import { AgentEvent, AgentEventType, PermissionResponse } from '../core/types';
+import { AgentEvent, AgentEventSource, AgentEventType, PermissionResponse } from '../core/types';
 import { OutputChannelLogger } from '../services/OutputChannelLogger';
 import { IResponseTarget } from '../services/ResponseDispatcher';
 
@@ -92,7 +92,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
     try {
       const body = await this.readBody(req);
       const rawPayload = JSON.parse(body) as unknown;
-      const event = parseEvent(rawPayload);
+      const event = parseEvent(rawPayload, { source: AgentEventSource.HTTP });
 
       if (event.type === AgentEventType.PERMISSION_REQUIRED) {
         const response = await this.awaitPermissionResponse(event);

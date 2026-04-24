@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { parseEvent } from '../core/EventValidator';
-import { AgentEvent, PermissionResponse } from '../core/types';
+import { AgentEvent, AgentEventSource, PermissionResponse } from '../core/types';
 import { OutputChannelLogger } from '../services/OutputChannelLogger';
 import { IResponseTarget } from '../services/ResponseDispatcher';
 
@@ -60,7 +60,7 @@ export class FileWatchTransport implements ITransport, IResponseTarget {
       }
 
       const rawPayload = JSON.parse(rawFile) as unknown;
-      const event = parseEvent(rawPayload);
+      const event = parseEvent(rawPayload, { source: AgentEventSource.FILE });
       this.lastPayload = rawFile;
       this.callback?.(event);
     } catch (error) {

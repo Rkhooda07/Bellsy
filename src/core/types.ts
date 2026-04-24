@@ -3,11 +3,30 @@ export enum AgentEventType {
   TASK_COMPLETED = 'task_completed',
 }
 
+export enum AgentEventSource {
+  VSCODE = 'vscode',
+  CLI = 'cli',
+  EXTERNAL_AGENT = 'external_agent',
+  FILE = 'file',
+  HTTP = 'http',
+  SIMULATOR = 'simulator',
+}
+
+export enum AgentEventPriority {
+  HIGH = 'high',
+  LOW = 'low',
+}
+
 export interface AgentEvent {
   id: string;
   type: AgentEventType;
+  source: AgentEventSource;
   message: string;
+  priority: AgentEventPriority;
   timestamp: number;
+  agent?: string;
+  workspace?: string;
+  correlationId?: string;
   metadata?: Record<string, unknown>;
 }
 
