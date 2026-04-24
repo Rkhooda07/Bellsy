@@ -13,6 +13,7 @@ import {
 } from './core/constants';
 import { AgentEventType } from './core/types';
 import { AgentSimulator } from './simulation/AgentSimulator';
+import { NotificationEngine } from './services/NotificationEngine';
 import { NotificationService } from './services/NotificationService';
 import { OutputChannelLogger } from './services/OutputChannelLogger';
 import { PermissionManager } from './services/PermissionManager';
@@ -36,10 +37,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
   );
   const systemNotifService = new SystemNotifService(context.extensionPath);
-  const permissionManager = new PermissionManager(
+  const notificationEngine = new NotificationEngine(
     notificationService,
     systemNotifService,
     soundService,
+    logger,
+    () => vscode.window.state.focused,
+  );
+  const permissionManager = new PermissionManager(
+    notificationService,
+    notificationEngine,
     statusBarService,
     dispatcher,
     logger,
@@ -78,12 +85,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   EventBus.on(AgentEventType.TASK_COMPLETED, (event) => {
     logger.info(`Task completed event received: ${event.message}`);
-    void notificationService.showTaskCompleted(event.message);
-    systemNotifService.notifyCompletion(event.message);
-
-    if (!systemNotifService.usesNativeSound()) {
-      soundService.playTaskComplete();
-    }
+    notificationEngine.showTaskCompleted(event);
   });
 
   transport.onEvent((event) => {
@@ -106,6 +108,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     statusBarService,
     vscode.commands.registerCommand('agentNotifier.showLogs', () => {
       logger.show();
+    }),
+    vscode.commands.registerCommand('agentNotifier.runSelfTest', async () => {
+      await notificationEngine.runSelfTest();
     }),
     vscode.commands.registerCommand('agentNotifier.simulatePermission', () => {
       simulator.emitPermissionRequest();

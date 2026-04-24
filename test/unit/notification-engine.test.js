@@ -1,0 +1,91 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+const { NotificationEngine } = require('../../out/services/NotificationEngine');
+const { AgentEventPriority, AgentEventSource, AgentEventType } = require('../../out/core/types');
+
+function createEvent(overrides = {}) {
+  return {
+    id: 'evt-1',
+    type: AgentEventType.TASK_COMPLETED,
+    source: AgentEventSource.CLI,
+    message: 'Task finished',
+    priority: AgentEventPriority.LOW,
+    timestamp: Date.now(),
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function createHarness(focused) {
+  const calls = [];
+  const engine = new NotificationEngine(
+    {
+      async showPermissionRequest(message) {
+        calls.push(['popup-permission', message]);
+        return 'Allow';
+      },
+      showTaskCompleted(message) {
+        calls.push(['popup-complete', message]);
+        return Promise.resolve(undefined);
+      },
+    },
+    {
+      usesNativeSound() {
+        return false;
+      },
+      async showPermissionRequest(message, critical) {
+        calls.push(['system-permission', message, critical]);
+        return undefined;
+      },
+      notifyCompletion(message, critical) {
+        calls.push(['system-complete', message, critical]);
+      },
+    },
+    {
+      playPermissionAlert() {
+        calls.push(['sound-permission']);
+      },
+      playTaskComplete() {
+        calls.push(['sound-complete']);
+      },
+    },
+    {
+      info() {},
+    },
+    () => focused,
+  );
+
+  return { calls, engine };
+}
+
+test('completion notifications become critical when editor is unfocused', () => {
+  const { calls, engine } = createHarness(false);
+
+  engine.showTaskCompleted(createEvent());
+
+  assert.deepEqual(calls, [
+    ['popup-complete', 'Task finished'],
+    ['system-complete', 'Task finished', true],
+    ['sound-complete'],
+  ]);
+});
+
+test('high-priority permission notifications are critical even when focused', async () => {
+  const { calls, engine } = createHarness(true);
+
+  const choice = await engine.requestPermission(
+    createEvent({
+      type: AgentEventType.PERMISSION_REQUIRED,
+      message: 'Run npm install',
+      priority: AgentEventPriority.HIGH,
+    }),
+  );
+
+  assert.equal(choice, 'Allow');
+  assert.deepEqual(calls, [
+    ['popup-permission', 'Run npm install'],
+    ['system-permission', 'Run npm install', true],
+    ['sound-permission'],
+  ]);
+});

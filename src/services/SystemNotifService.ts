@@ -25,23 +25,23 @@ export class SystemNotifService {
     return false;
   }
 
-  async showPermissionRequest(message: string): Promise<PermissionChoice | undefined> {
+  async showPermissionRequest(message: string, critical = true): Promise<PermissionChoice | undefined> {
     if (os.platform() === 'darwin') {
-      await this.showMacNotification('AI Agent - Permission Required', message);
+      await this.showMacNotification('AI Agent - Permission Required', message, critical);
       return undefined;
     }
 
-    this.notifyGeneric('AI Agent - Permission Required', message, 30, true);
+    this.notifyGeneric('AI Agent - Permission Required', message, 30, critical);
     return undefined;
   }
 
-  notifyCompletion(message: string): void {
+  notifyCompletion(message: string, critical = false): void {
     if (os.platform() === 'darwin') {
-      void this.showMacNotification('AI Agent - Task Completed', message);
+      void this.showMacNotification('AI Agent - Task Completed', message, critical);
       return;
     }
 
-    this.notifyGeneric('AI Agent - Task Completed', message, 10, false);
+    this.notifyGeneric('AI Agent - Task Completed', message, 10, critical);
   }
 
   private notifyGeneric(title: string, message: string, timeout: number, critical: boolean): void {
@@ -55,7 +55,7 @@ export class SystemNotifService {
     });
   }
 
-  private showMacNotification(title: string, message: string): Promise<void> {
+  private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
     const args = [
       '-title',
       title,
@@ -64,6 +64,10 @@ export class SystemNotifService {
       '-sender',
       this.detectMacSenderBundleId(),
     ];
+
+    if (critical) {
+      args.push('-timeout', '30');
+    }
 
     return new Promise((resolve) => {
       execFile(this.macNotifierPath, args, { timeout: 3000 }, () => resolve());

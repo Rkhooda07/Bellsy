@@ -1,11 +1,10 @@
 import { AgentEvent, PermissionResponse } from '../core/types';
 
 import { NotificationService } from './NotificationService';
+import { NotificationEngine } from './NotificationEngine';
 import { OutputChannelLogger } from './OutputChannelLogger';
 import { ResponseDispatcher } from './ResponseDispatcher';
-import { SoundService } from './SoundService';
 import { StatusBarService } from './StatusBarService';
-import { SystemNotifService } from './SystemNotifService';
 
 export class PermissionManager {
   private readonly pending = new Map<string, AgentEvent>();
@@ -13,8 +12,7 @@ export class PermissionManager {
 
   constructor(
     private readonly notificationService: NotificationService,
-    private readonly systemNotifService: SystemNotifService,
-    private readonly soundService: SoundService,
+    private readonly notificationEngine: NotificationEngine,
     private readonly statusBarService: StatusBarService,
     private readonly dispatcher: ResponseDispatcher,
     private readonly logger: OutputChannelLogger,
@@ -29,7 +27,7 @@ export class PermissionManager {
     this.logger.info(`Permission requested: ${event.message}`);
 
     try {
-      const choice = await this.awaitUserChoice(event.message);
+      const choice = await this.notificationEngine.requestPermission(event);
 
       const response: PermissionResponse = {
         eventId: event.id,
@@ -52,28 +50,6 @@ export class PermissionManager {
 
   getPendingEvents(): AgentEvent[] {
     return [...this.pending.values()];
-  }
-
-  private async awaitUserChoice(message: string): Promise<'Allow' | 'Deny'> {
-    return new Promise((resolve) => {
-      let settled = false;
-
-      const settle = (choice: 'Allow' | 'Deny' | undefined): void => {
-        if (settled || !choice) {
-          return;
-        }
-
-        settled = true;
-        resolve(choice);
-      };
-
-      void this.notificationService.showPermissionRequest(message).then(settle).catch(() => undefined);
-      void this.systemNotifService.showPermissionRequest(message).then(settle).catch(() => undefined);
-
-      if (!this.systemNotifService.usesNativeSound()) {
-        this.soundService.playPermissionAlert();
-      }
-    });
   }
 
   private ensureReminderLoop(): void {

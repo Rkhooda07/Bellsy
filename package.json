@@ -34,6 +34,7 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:agentNotifier.showLogs",
+    "onCommand:agentNotifier.runSelfTest",
     "onCommand:agentNotifier.simulatePermission",
     "onCommand:agentNotifier.simulateComplete",
     "onCommand:agentNotifier.showPendingList"
@@ -45,6 +46,10 @@
       {
         "command": "agentNotifier.showLogs",
         "title": "AI Notifier: Show Logs"
+      },
+      {
+        "command": "agentNotifier.runSelfTest",
+        "title": "AI Notifier: Run Self Test"
       },
       {
         "command": "agentNotifier.simulatePermission",
