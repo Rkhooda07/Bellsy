@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import EventBus from './core/EventBus';
+import { EventRouter } from './core/EventRouter';
 import {
   DEFAULT_HTTP_PORT,
   DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
@@ -31,6 +32,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const notificationService = new NotificationService();
   const statusBarService = new StatusBarService();
   const dispatcher = new ResponseDispatcher();
+  const eventRouter = new EventRouter();
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
@@ -90,6 +92,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   transport.onEvent((event) => {
     logger.info(`Event received: ${event.type} (${event.id})`);
+    if (!eventRouter.shouldRoute(event)) {
+      logger.warn(`Event dropped by router as duplicate or burst: ${event.type} (${event.id})`);
+      return;
+    }
+
     EventBus.emit(event.type, event);
   });
 

@@ -64,6 +64,13 @@ Supported event types:
 - `permission_required`
 - `task_completed`
 
+Optional normalized fields:
+
+- `source`: `vscode`, `cli`, `external_agent`, `file`, `http`, or `simulator`
+- `priority`: `high` or `low`
+- `agent`: tool name such as `codex`, `claude`, or `copilot`
+- `correlationId`: stable run id used to dedupe repeated events
+
 ## HTTP Transport
 
 Default endpoint: `http://127.0.0.1:9001/event`
@@ -132,6 +139,15 @@ Included examples:
 - generic Node sender
 - Codex shell hook example
 - Claude Code shell hook example
+
+The packaged CLI wrapper can also run agent commands and detect common terminal prompts:
+
+```bash
+pingly-run --agent claude -- claude "fix the failing tests"
+pingly-run --agent codex -- codex run
+```
+
+The wrapper mirrors stdout/stderr, scans the live stream for permission and completion signals, and posts normalized events to the extension over the local HTTP endpoint.
 
 ## Security Model
 

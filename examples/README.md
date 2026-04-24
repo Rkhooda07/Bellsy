@@ -8,6 +8,34 @@ These examples are meant to shorten setup for local coding-agent workflows.
 - `codex-hook.example.sh`: shell example for Codex-style workflows
 - `claude-code-hook.example.sh`: shell example for Claude Code-style workflows
 
+## CLI Wrapper
+
+After installing the extension package locally, use `pingly-run` to wrap a CLI agent:
+
+```bash
+pingly-run --agent claude -- claude "fix the failing tests"
+pingly-run --agent codex -- codex run
+```
+
+The wrapper:
+
+- streams stdout and stderr back to your terminal immediately
+- detects common permission prompts such as `[y/N]` and `Do you want to proceed?`
+- detects common completion phrases and successful process exits
+- sends normalized events to `http://127.0.0.1:9001/event`
+- writes `y` or `n` back to the child process when the extension returns Allow or Deny
+
+Options:
+
+```bash
+pingly-run \
+  --agent claude \
+  --endpoint http://127.0.0.1:9001/event \
+  --allow-input "y\n" \
+  --deny-input "n\n" \
+  -- claude "run tests"
+```
+
 ## Generic Sender
 
 ```bash
