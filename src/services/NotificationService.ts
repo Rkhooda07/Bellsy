@@ -15,7 +15,14 @@ export class NotificationService {
   }
 
   showTaskCompleted(message: string): Thenable<string | undefined> {
-    return vscode.window.showInformationMessage(`AI Agent Completed: ${message}`);
+    return vscode.window.showWarningMessage(
+      `AI Agent Completed\n${message}`,
+      {
+        modal: false,
+      },
+      'Dismiss',
+      'Open Logs',
+    );
   }
 
   showError(message: string): Thenable<string | undefined> {

@@ -107,3 +107,12 @@ test('low-priority completion notifications still use prominent system delivery'
     ['sound-complete'],
   ]);
 });
+
+test('completion notifications still show the popup surface before system delivery', () => {
+  const { calls, engine } = createHarness(true);
+
+  engine.showTaskCompleted(createEvent({ message: 'Popup surface test' }));
+
+  assert.deepEqual(calls[0], ['popup-complete', 'Popup surface test']);
+  assert.equal(calls[1][0], 'system-complete');
+});
