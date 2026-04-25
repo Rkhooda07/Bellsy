@@ -17,7 +17,7 @@ export class NotificationEngine {
   ) {}
 
   async requestPermission(event: AgentEvent): Promise<PermissionChoice> {
-    const critical = this.shouldUseCriticalSystemNotification(event);
+    const critical = this.shouldUseProminentSystemNotification();
     this.logger.info(
       `Dispatching permission notification for ${event.id} from ${event.source} ` +
         `(focused=${this.isFocused()}, critical=${critical})`,
@@ -48,7 +48,7 @@ export class NotificationEngine {
   }
 
   showTaskCompleted(event: AgentEvent): void {
-    const critical = this.shouldUseCriticalSystemNotification(event);
+    const critical = this.shouldUseProminentSystemNotification();
     this.logger.info(
       `Dispatching completion notification for ${event.id} from ${event.source} ` +
         `(focused=${this.isFocused()}, critical=${critical})`,
@@ -72,8 +72,8 @@ export class NotificationEngine {
     }
   }
 
-  private shouldUseCriticalSystemNotification(event: AgentEvent): boolean {
-    return event.priority === AgentEventPriority.HIGH || !this.isFocused();
+  private shouldUseProminentSystemNotification(): boolean {
+    return true;
   }
 
   private formatMessage(event: AgentEvent): string {

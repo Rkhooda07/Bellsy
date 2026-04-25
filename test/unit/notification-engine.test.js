@@ -59,8 +59,8 @@ function createHarness(focused) {
   return { calls, engine };
 }
 
-test('completion notifications become critical when editor is unfocused', () => {
-  const { calls, engine } = createHarness(false);
+test('completion notifications always use prominent system delivery', () => {
+  const { calls, engine } = createHarness(true);
 
   engine.showTaskCompleted(createEvent());
 
@@ -87,5 +87,23 @@ test('high-priority permission notifications are critical even when focused', as
     ['popup-permission', 'Run npm install'],
     ['system-permission', 'Run npm install', true],
     ['sound-permission'],
+  ]);
+});
+
+test('low-priority completion notifications still use prominent system delivery', () => {
+  const { calls, engine } = createHarness(true);
+
+  engine.showTaskCompleted(
+    createEvent({
+      type: AgentEventType.TASK_COMPLETED,
+      priority: AgentEventPriority.LOW,
+      message: 'HTTP completion test',
+    }),
+  );
+
+  assert.deepEqual(calls, [
+    ['popup-complete', 'HTTP completion test'],
+    ['system-complete', 'HTTP completion test', true],
+    ['sound-complete'],
   ]);
 });
