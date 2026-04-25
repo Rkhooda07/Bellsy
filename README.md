@@ -2,7 +2,7 @@
 
 AI Agent Notifier is a VS Code extension for one job: **tell you when a local coding agent needs attention**.
 
-It is designed for workflows where Codex, Claude Code, Cursor hooks, or any local script can send a small event to VS Code and get back a fast approval signal.
+It is designed for workflows where VS Code, local scripts, or editor-integrated agents can send a small event to VS Code and get back a fast approval signal.
 
 ## What It Does
 
@@ -18,7 +18,8 @@ It is designed for workflows where Codex, Claude Code, Cursor hooks, or any loca
 This extension is for:
 
 - local coding-agent workflows
-- long-running CLI tools
+- editor-integrated agents
+- scripts or hooks that can send local HTTP/file events
 - AI-assisted development setups where VS Code is open but not always focused
 
 This extension is not trying to be:
@@ -41,6 +42,7 @@ Open the workspace in VS Code and start `Run AI Agent Notifier` from `.vscode/la
 ## Commands
 
 - `AI Notifier: Show Logs`
+- `AI Notifier: Run Self Test`
 - `AI Notifier: Simulate Permission Request`
 - `AI Notifier: Simulate Task Completed`
 - `AI Notifier: Show Pending Requests`
@@ -140,14 +142,11 @@ Included examples:
 - Codex shell hook example
 - Claude Code shell hook example
 
-The packaged CLI wrapper can also run agent commands and detect common terminal prompts:
+Current release guidance:
 
-```bash
-pingly-run --agent claude -- claude "fix the failing tests"
-pingly-run --agent codex -- codex run
-```
-
-The wrapper mirrors stdout/stderr, scans the live stream for permission and completion signals, and posts normalized events to the extension over the local HTTP endpoint.
+- use explicit HTTP events from scripts, hooks, or external tools
+- use file transport when a local workflow is simpler with request/response files
+- do not rely on generic terminal interception as a supported feature in this release
 
 ## Security Model
 
@@ -158,6 +157,7 @@ The wrapper mirrors stdout/stderr, scans the live stream for permission and comp
 ## Troubleshooting
 
 - If the extension fails to activate, run `AI Notifier: Show Logs`.
+- Run `AI Notifier: Run Self Test` to verify popup, system notification, and sound behavior.
 - If port `9001` is already in use, change `agentNotifier.httpPort`.
 - If OS notifications do not appear, check your OS notification permissions for VS Code, Cursor, or VSCodium.
 - If sounds do not play on Linux, ensure `paplay` or `aplay` is available.
