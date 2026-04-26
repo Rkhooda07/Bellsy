@@ -5,6 +5,11 @@ import * as os from 'os';
 
 import { SOUND_FILES } from '../core/constants';
 
+const MACOS_SYSTEM_SOUNDS = {
+  permission: '/System/Library/Sounds/Ping.aiff',
+  completed: '/System/Library/Sounds/Glass.aiff',
+} as const;
+
 export class SoundService {
   constructor(
     private readonly soundsPath: string,
@@ -13,24 +18,20 @@ export class SoundService {
   ) {}
 
   playPermissionAlert(): void {
-    this.play(SOUND_FILES.permission);
+    this.play(SOUND_FILES.permission, MACOS_SYSTEM_SOUNDS.permission);
   }
 
   playTaskComplete(): void {
-    this.play(SOUND_FILES.completed);
+    this.play(SOUND_FILES.completed, MACOS_SYSTEM_SOUNDS.completed);
   }
 
-  private play(filename: string): void {
+  private play(filename: string, macosSystemSoundPath: string): void {
     if (!this.soundEnabled) {
       return;
     }
 
     const fullPath = path.join(this.soundsPath, filename);
-    if (!fs.existsSync(fullPath)) {
-      return;
-    }
-
-    const command = this.buildCommand(fullPath);
+    const command = this.buildCommand(fullPath, macosSystemSoundPath);
     if (!command) {
       return;
     }
@@ -42,13 +43,21 @@ export class SoundService {
     });
   }
 
-  private buildCommand(filePath: string): string | null {
+  private buildCommand(filePath: string, macosSystemSoundPath: string): string | null {
     switch (os.platform()) {
       case 'darwin':
-        return `afplay -v ${this.normalizedVolume} "${filePath}"`;
+        return `afplay -v ${this.normalizedVolume} "${macosSystemSoundPath}"`;
       case 'win32':
+        if (!fs.existsSync(filePath)) {
+          return null;
+        }
+
         return `powershell -NoProfile -Command "(New-Object Media.SoundPlayer '${filePath.replace(/'/g, "''")}').PlaySync();"`;
       case 'linux':
+        if (!fs.existsSync(filePath)) {
+          return null;
+        }
+
         return `paplay "${filePath}" || aplay "${filePath}"`;
       default:
         return null;
