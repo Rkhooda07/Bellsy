@@ -99,14 +99,14 @@
         "agentNotifier.soundEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable notification sounds."
+          "description": "Enable notification sounds. macOS uses native system sounds; Windows and Linux use bundled sound files."
         },
         "agentNotifier.soundVolume": {
           "type": "number",
           "default": 45,
           "minimum": 0,
           "maximum": 100,
-          "description": "Preferred playback volume. Applied on supported platforms."
+          "description": "Preferred playback volume. Applied to macOS native playback and supported bundled playback commands."
         },
         "agentNotifier.httpResponseTimeoutMs": {
           "type": "number",
