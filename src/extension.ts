@@ -119,12 +119,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('agentNotifier.runSelfTest', async () => {
       await notificationEngine.runSelfTest();
     }),
-    vscode.commands.registerCommand('agentNotifier.simulatePermission', () => {
-      simulator.emitPermissionRequest();
-    }),
-    vscode.commands.registerCommand('agentNotifier.simulateComplete', () => {
-      simulator.emitTaskCompleted();
-    }),
     vscode.commands.registerCommand('agentNotifier.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();
 

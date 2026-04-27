@@ -1,10 +1,10 @@
 # AI Agent Notifier
 
-AI Agent Notifier is a VS Code extension for one job: **tell you when a local coding agent needs attention**.
+AI Agent Notifier is a VS Code extension for one job: **tell you when an AI agent needs your attention**.
 
 It is designed for workflows where VS Code, local scripts, or editor-integrated agents can send a small event to VS Code and get back a fast approval signal.
 
-## What It Does
+## What Problem It Solves
 
 - Shows in-editor permission prompts with `Allow` and `Deny`
 - Sends OS notifications for permission requests and task completion
@@ -43,9 +43,17 @@ Open the workspace in VS Code and start `Run AI Agent Notifier` from `.vscode/la
 
 - `AI Notifier: Show Logs`
 - `AI Notifier: Run Self Test`
-- `AI Notifier: Simulate Permission Request`
-- `AI Notifier: Simulate Task Completed`
 - `AI Notifier: Show Pending Requests`
+
+## How To Test It
+
+1. Install or run the extension in VS Code.
+2. Run `AI Notifier: Run Self Test` from the Command Palette.
+3. Confirm that you receive:
+   a visible VS Code popup,
+   a system notification,
+   and the platform-appropriate sound.
+4. Use the HTTP or file transport examples below to verify a real event path.
 
 ## Event Shape
 
@@ -77,6 +85,8 @@ Optional normalized fields:
 
 Default endpoint: `http://127.0.0.1:9001/event`
 
+Use this when a script, hook, or external tool can send explicit events to the extension.
+
 Completion event:
 
 ```bash
@@ -105,6 +115,8 @@ If the user responds, the HTTP caller receives:
 ```
 
 ## File Transport
+
+Use this when a local workflow is simpler with a watched request file and a response file.
 
 Set `agentNotifier.transport` to `file`.
 
@@ -147,6 +159,20 @@ Current release guidance:
 - use explicit HTTP events from scripts, hooks, or external tools
 - use file transport when a local workflow is simpler with request/response files
 - do not rely on generic terminal interception as a supported feature in this release
+
+## Supported In This Release
+
+- VS Code extension usage
+- in-editor permission prompts and completion popups
+- system notifications on macOS, Windows, and Linux
+- explicit HTTP event delivery
+- file-based event delivery
+- self-test, logs, and pending request inspection
+
+Not officially supported in this release:
+
+- generic interception of any arbitrary CLI agent terminal session
+- agent-specific adapters beyond explicit script or hook integration
 
 ## Security Model
 
