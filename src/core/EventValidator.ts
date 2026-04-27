@@ -81,5 +81,5 @@ export function parseEvent(raw: unknown, defaults: EventDefaults = {}): AgentEve
 }
 
 function defaultPriority(type: AgentEventType): AgentEventPriority {
-  return type === AgentEventType.PERMISSION_REQUIRED ? AgentEventPriority.HIGH : AgentEventPriority.LOW;
+  return type === AgentEventType.TASK_COMPLETED ? AgentEventPriority.LOW : AgentEventPriority.HIGH;
 }

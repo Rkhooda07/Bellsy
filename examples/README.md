@@ -25,5 +25,6 @@ Environment variables:
 The shell examples are templates. Adapt them to the hook mechanism your agent exposes.
 
 - Use HTTP transport when you want synchronous allow or deny responses.
+- Cursor background agents can target `/cursor/webhook`, but they need a public HTTPS URL or tunnel to reach your local extension.
 - Use file transport when your local workflow is simpler and polling a response file is acceptable.
 - Current release support is based on explicit events from hooks or scripts, not generic CLI interception.

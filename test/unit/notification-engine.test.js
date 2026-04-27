@@ -29,6 +29,10 @@ function createHarness(focused) {
         calls.push(['popup-complete', message]);
         return Promise.resolve(undefined);
       },
+      showAttentionRequired(message) {
+        calls.push(['popup-attention', message]);
+        return Promise.resolve(undefined);
+      },
     },
     {
       usesNativeSound() {
@@ -40,6 +44,9 @@ function createHarness(focused) {
       },
       notifyCompletion(message, critical) {
         calls.push(['system-complete', message, critical]);
+      },
+      notifyAttention(message, critical) {
+        calls.push(['system-attention', message, critical]);
       },
     },
     {
@@ -115,4 +122,22 @@ test('completion notifications still show the popup surface before system delive
 
   assert.deepEqual(calls[0], ['popup-complete', 'Popup surface test']);
   assert.equal(calls[1][0], 'system-complete');
+});
+
+test('attention notifications use the stronger popup and sound path', () => {
+  const { calls, engine } = createHarness(true);
+
+  engine.showAttentionRequired(
+    createEvent({
+      type: AgentEventType.ATTENTION_REQUIRED,
+      priority: AgentEventPriority.HIGH,
+      message: 'Cursor background agent needs attention',
+    }),
+  );
+
+  assert.deepEqual(calls, [
+    ['popup-attention', 'Cursor background agent needs attention'],
+    ['system-attention', 'Cursor background agent needs attention', true],
+    ['sound-permission'],
+  ]);
 });

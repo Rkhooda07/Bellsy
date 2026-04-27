@@ -62,6 +62,21 @@ export class NotificationEngine {
     }
   }
 
+  showAttentionRequired(event: AgentEvent): void {
+    const critical = this.shouldUseProminentSystemNotification();
+    this.logger.info(
+      `Dispatching attention notification for ${event.id} from ${event.source} ` +
+        `(focused=${this.isFocused()}, critical=${critical})`,
+    );
+
+    void this.notificationService.showAttentionRequired(this.formatMessage(event));
+    this.systemNotifService.notifyAttention(this.formatMessage(event), critical);
+
+    if (!this.systemNotifService.usesNativeSound()) {
+      this.soundService.playPermissionAlert();
+    }
+  }
+
   async runSelfTest(): Promise<void> {
     this.logger.info('Running notification self-test');
     await this.notificationService.showTaskCompleted('Self test: in-editor notification is working');

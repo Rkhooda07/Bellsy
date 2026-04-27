@@ -1,5 +1,6 @@
 export enum AgentEventType {
   PERMISSION_REQUIRED = 'permission_required',
+  ATTENTION_REQUIRED = 'attention_required',
   TASK_COMPLETED = 'task_completed',
 }
 
@@ -39,6 +40,7 @@ export interface PermissionResponse {
 export interface AgentNotifierConfig {
   transport: 'file' | 'http';
   httpPort: number;
+  cursorWebhookSecret: string;
   watchFilePath: string;
   watchResponseFilePath: string;
   soundEnabled: boolean;

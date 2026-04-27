@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import {
+  DEFAULT_CURSOR_WEBHOOK_SECRET,
   DEFAULT_HTTP_PORT,
   DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
   DEFAULT_PERMISSION_REMINDER_ENABLED,
@@ -30,6 +31,7 @@ export class TransportFactory {
       config.httpPort || DEFAULT_HTTP_PORT,
       config.httpResponseTimeoutMs || DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
       logger,
+      config.cursorWebhookSecret || DEFAULT_CURSOR_WEBHOOK_SECRET,
     );
   }
 
@@ -40,6 +42,7 @@ export class TransportFactory {
       {
         transport: config.get<'file' | 'http'>('transport', 'http'),
         httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
+        cursorWebhookSecret: config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET),
         watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
         watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),
         soundEnabled: config.get<boolean>('soundEnabled', true),

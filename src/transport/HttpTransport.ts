@@ -1,8 +1,9 @@
 import * as http from 'http';
 
-import { DEFAULT_HTTP_HOST } from '../core/constants';
+import { CURSOR_WEBHOOK_PATH, DEFAULT_HTTP_HOST } from '../core/constants';
 import { parseEvent } from '../core/EventValidator';
 import { AgentEvent, AgentEventSource, AgentEventType, PermissionResponse } from '../core/types';
+import { parseCursorWebhook } from '../integrations/CursorWebhook';
 import { OutputChannelLogger } from '../services/OutputChannelLogger';
 import { IResponseTarget } from '../services/ResponseDispatcher';
 
@@ -23,6 +24,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
     private readonly port: number,
     private readonly responseTimeoutMs: number,
     private readonly logger: OutputChannelLogger,
+    private readonly cursorWebhookSecret = '',
   ) {}
 
   async start(): Promise<void> {
@@ -39,6 +41,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
     });
 
     this.logger.info(`HTTP transport listening on http://${DEFAULT_HTTP_HOST}:${this.port}/event`);
+    this.logger.info(`Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.port}${CURSOR_WEBHOOK_PATH}`);
   }
 
   onEvent(callback: (event: AgentEvent) => void): void {
@@ -82,13 +85,28 @@ export class HttpTransport implements ITransport, IResponseTarget {
     pending.resolve(response);
   }
 
-  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-    if (req.method !== 'POST' || req.url !== '/event') {
+  async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (req.method !== 'POST') {
       res.writeHead(404, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not found' }));
       return;
     }
 
+    if (req.url === '/event') {
+      await this.handleGenericEventRequest(req, res);
+      return;
+    }
+
+    if (req.url === CURSOR_WEBHOOK_PATH) {
+      await this.handleCursorWebhookRequest(req, res);
+      return;
+    }
+
+    res.writeHead(404, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
+  }
+
+  private async handleGenericEventRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     try {
       const body = await this.readBody(req);
       const rawPayload = JSON.parse(body) as unknown;
@@ -108,6 +126,38 @@ export class HttpTransport implements ITransport, IResponseTarget {
       const message = error instanceof Error ? error.message : String(error);
       const statusCode = this.statusCodeForError(error);
       this.logger.warn(`HTTP transport request failed (${statusCode}): ${message}`);
+      res.writeHead(statusCode, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: message }));
+    }
+  }
+
+  private async handleCursorWebhookRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    try {
+      const body = await this.readBody(req);
+      const event = parseCursorWebhook(
+        body,
+        {
+          signature: this.readHeader(req, 'x-webhook-signature'),
+          deliveryId: this.readHeader(req, 'x-webhook-id'),
+          event: this.readHeader(req, 'x-webhook-event'),
+          userAgent: this.readHeader(req, 'user-agent'),
+        },
+        this.cursorWebhookSecret,
+      );
+
+      if (!event) {
+        res.writeHead(202, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ignored' }));
+        return;
+      }
+
+      this.callback?.(event);
+      res.writeHead(202, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ status: 'accepted', id: event.id }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const statusCode = message.includes('signature') ? 401 : this.statusCodeForError(error);
+      this.logger.warn(`Cursor webhook request failed (${statusCode}): ${message}`);
       res.writeHead(statusCode, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: message }));
     }
@@ -163,5 +213,14 @@ export class HttpTransport implements ITransport, IResponseTarget {
       req.on('end', () => resolve(body));
       req.on('error', reject);
     });
+  }
+
+  private readHeader(req: http.IncomingMessage, name: string): string | undefined {
+    const header = req.headers[name];
+    if (Array.isArray(header)) {
+      return header[0];
+    }
+
+    return header;
   }
 }

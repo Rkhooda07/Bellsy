@@ -76,6 +76,11 @@
           "maximum": 65535,
           "description": "Loopback HTTP port used by the extension."
         },
+        "agentNotifier.cursorWebhookSecret": {
+          "type": "string",
+          "default": "",
+          "description": "Optional HMAC secret used to verify Cursor background-agent webhooks sent to /cursor/webhook. Set this to the same secret you configure in Cursor."
+        },
         "agentNotifier.watchFilePath": {
           "type": "string",
           "default": "/tmp/agent_event.json",

@@ -19,6 +19,15 @@ test('parseEvent accepts valid payloads and fills defaults', () => {
   assert.deepEqual(event.metadata, {});
 });
 
+test('parseEvent defaults attention-required events to high priority', () => {
+  const event = parseEvent({
+    type: AgentEventType.ATTENTION_REQUIRED,
+    message: 'Cursor background agent failed',
+  });
+
+  assert.equal(event.priority, AgentEventPriority.HIGH);
+});
+
 test('parseEvent accepts explicit normalized source fields', () => {
   const event = parseEvent({
     type: AgentEventType.TASK_COMPLETED,

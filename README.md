@@ -8,6 +8,7 @@ It is designed for workflows where VS Code, local scripts, or editor-integrated 
 
 - Shows in-editor permission prompts with `Allow` and `Deny`
 - Sends OS notifications for permission requests and task completion
+- Sends urgent attention alerts when a supported agent reports an error state
 - Plays optional sounds for high-signal events
 - Keeps pending approvals visible in the status bar
 - Accepts events over loopback HTTP or file-watch transport
@@ -72,6 +73,7 @@ Open the workspace in VS Code and start `Run AI Agent Notifier` from `.vscode/la
 Supported event types:
 
 - `permission_required`
+- `attention_required`
 - `task_completed`
 
 Optional normalized fields:
@@ -113,6 +115,27 @@ If the user responds, the HTTP caller receives:
   "respondedAt": 1760000000000
 }
 ```
+
+## Cursor Background Agents
+
+Cursor background agents can send signed `statusChange` webhooks to:
+
+```text
+http://127.0.0.1:9001/cursor/webhook
+```
+
+Important:
+
+- Cursor background agents run remotely, so Cursor cannot reach `127.0.0.1` directly.
+- To use this from a desktop machine, expose the local port through a tunnel or relay and point Cursor to that public HTTPS URL.
+- Set `agentNotifier.cursorWebhookSecret` to the same HMAC secret you configure in Cursor.
+
+Cursor mapping in this release:
+
+- `FINISHED` -> `task_completed`
+- `ERROR` -> `attention_required`
+
+Cursor does **not** send interactive Allow/Deny permission prompts through this webhook API, so this integration covers completion and error attention, not remote command approvals.
 
 ## File Transport
 
@@ -166,19 +189,21 @@ Current release guidance:
 - in-editor permission prompts and completion popups
 - system notifications on macOS, Windows, and Linux
 - explicit HTTP event delivery
+- Cursor background-agent webhook ingestion through the HTTP transport
 - file-based event delivery
 - self-test, logs, and pending request inspection
 
 Not officially supported in this release:
 
 - generic interception of any arbitrary CLI agent terminal session
+- automatic foreground Cursor or Antigravity chat lifecycle detection
 - agent-specific adapters beyond explicit script or hook integration
 
 ## Security Model
 
 - The HTTP server binds to `127.0.0.1` only.
 - There is no remote auth layer because the intended use is same-machine local tooling.
-- Do not expose the port outside the local machine.
+- If you expose the port through a tunnel for Cursor webhooks, set `agentNotifier.cursorWebhookSecret` and use the same secret in Cursor.
 
 ## Troubleshooting
 

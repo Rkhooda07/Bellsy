@@ -44,6 +44,15 @@ export class SystemNotifService {
     this.notifyGeneric('AI Agent - Task Completed', message, 10, critical);
   }
 
+  notifyAttention(message: string, critical = true): void {
+    if (os.platform() === 'darwin') {
+      void this.showMacNotification('AI Agent - Attention Required', message, critical);
+      return;
+    }
+
+    this.notifyGeneric('AI Agent - Attention Required', message, 30, critical);
+  }
+
   private notifyGeneric(title: string, message: string, timeout: number, critical: boolean): void {
     notifier.notify({
       title,

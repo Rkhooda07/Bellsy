@@ -25,6 +25,17 @@ export class NotificationService {
     );
   }
 
+  showAttentionRequired(message: string): Thenable<string | undefined> {
+    return vscode.window.showWarningMessage(
+      `AI Agent Needs Attention\n${message}`,
+      {
+        modal: false,
+      },
+      'Dismiss',
+      'Open Logs',
+    );
+  }
+
   showError(message: string): Thenable<string | undefined> {
     return vscode.window.showErrorMessage(`AI Agent Notifier Error: ${message}`);
   }
