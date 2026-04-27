@@ -123,7 +123,7 @@
     "pretest": "npm run build",
     "test": "node --test test/unit/*.test.js",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package --no-dependencies",
+    "package": "vsce package",
     "package:verify": "npm test && npm run package"
   },
   "dependencies": {
