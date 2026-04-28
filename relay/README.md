@@ -1,6 +1,8 @@
 # Pingly Relay
 
-This package contains the hosted relay for Cursor background-agent notifications.
+This package contains the optional hosted relay for experimental Cursor cloud-agent notifications.
+
+It is no longer the primary Pingly workflow. The main product path is local-agent notifications through `pingly-run`, direct local HTTP events, and tool hooks.
 
 ## Stack
 

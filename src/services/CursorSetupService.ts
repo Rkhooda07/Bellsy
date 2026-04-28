@@ -1,127 +1,130 @@
-import * as crypto from 'crypto';
-import * as http from 'http';
 import * as vscode from 'vscode';
-import { v4 as uuid } from 'uuid';
 
-import { CURSOR_WEBHOOK_PATH, DEFAULT_CURSOR_WEBHOOK_SECRET, DEFAULT_HTTP_HOST, DEFAULT_HTTP_PORT } from '../core/constants';
+import { AgentEventPriority, AgentEventSource, AgentEventType } from '../core/types';
 import { HostedRelayService } from '../relay/HostedRelayService';
 import { OutputChannelLogger } from './OutputChannelLogger';
+
+type LocalScenario = {
+  label: string;
+  description: string;
+  eventType: AgentEventType;
+  message: string;
+  priority: AgentEventPriority;
+};
 
 export class CursorSetupService {
   constructor(
     private readonly logger: OutputChannelLogger,
     private readonly relayService: HostedRelayService,
+    private readonly emitLocalEvent: (event: {
+      type: AgentEventType;
+      message: string;
+      priority: AgentEventPriority;
+      source: AgentEventSource;
+      agent?: string;
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+    }) => void,
   ) {}
 
   async run(): Promise<void> {
-    if (this.relayService.isConfigured()) {
-      await this.runHostedRelaySetup();
-      return;
-    }
-
-    const config = vscode.workspace.getConfiguration('agentNotifier');
-    const port = config.get<number>('httpPort', DEFAULT_HTTP_PORT);
-    const localWebhookUrl = `http://127.0.0.1:${port}${CURSOR_WEBHOOK_PATH}`;
-
-    let secret = config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET).trim();
-    if (!secret) {
-      secret = uuid();
-      await config.update('cursorWebhookSecret', secret, vscode.ConfigurationTarget.Global);
-      this.logger.info('Generated Cursor webhook secret for setup flow.');
-    }
-
-    const message =
-      'Cursor background-agent setup is ready. Copy the secret, expose the local webhook URL through any HTTPS tunnel, then paste the public URL and the secret into Cursor.';
-
-    const action = await vscode.window.showInformationMessage(
-      message,
-      'Copy Secret',
-      'Copy Local URL',
-      'Copy Tunnel Guide',
-      'Copy Setup Checklist',
-      'Open Settings',
+    const endpoint = 'http://127.0.0.1:9001/event';
+    const action = await vscode.window.showQuickPick(
+      [
+        { label: 'Copy Claude Code Wrapper', detail: 'Start Claude Code through pingly-run.' },
+        { label: 'Copy Codex Wrapper', detail: 'Start Codex CLI through pingly-run.' },
+        { label: 'Copy Generic Wrapper', detail: 'Wrap any local command with pingly-run.' },
+        { label: 'Copy Direct Event Curl', detail: 'Send a completion or error event from any script.' },
+        { label: 'Copy Setup Checklist', detail: 'Quick-start steps for local notifications.' },
+        { label: 'Show Experimental Cursor Relay Setup', detail: 'Copy hosted webhook values if you still want the secondary relay path.' },
+      ],
+      {
+        title: 'Pingly: Setup Local Agent Notifications',
+        placeHolder: 'Choose the local workflow you want to copy',
+        canPickMany: false,
+      },
     );
 
-    if (action === 'Copy Secret') {
-      await vscode.env.clipboard.writeText(secret);
-      await vscode.window.showInformationMessage('Cursor webhook secret copied.');
+    if (!action) {
       return;
     }
 
-    if (action === 'Copy Local URL') {
-      await vscode.env.clipboard.writeText(localWebhookUrl);
-      await vscode.window.showInformationMessage('Local Cursor webhook URL copied.');
+    if (action.label === 'Copy Claude Code Wrapper') {
+      await vscode.env.clipboard.writeText('pingly-run --agent claude-code -- claude');
+      await vscode.window.showInformationMessage('Claude Code wrapper command copied.');
       return;
     }
 
-    if (action === 'Copy Tunnel Guide') {
-      const tunnelGuide = [
-        'Cursor background-agent webhooks come from the cloud, so Cursor cannot call 127.0.0.1 directly.',
-        '',
-        'What you need:',
-        `- a public HTTPS URL that forwards to ${localWebhookUrl}`,
-        '- the same webhook secret in both Cursor and this extension',
-        '',
-        'After your tunnel is running:',
-        `1. Copy the public HTTPS URL from your tunnel tool, for example https://your-url.example.com${CURSOR_WEBHOOK_PATH}`,
-        '2. Paste that full public URL into Cursor background-agent webhook settings.',
-        `3. Paste this same secret into Cursor: ${secret}`,
-        '4. Run Cursor Agent Notifier: Test Cursor Webhook to confirm the local route works before using a real background agent.',
-      ].join('\n');
-
-      await vscode.env.clipboard.writeText(tunnelGuide);
-      await vscode.window.showInformationMessage('Cursor tunnel guidance copied.');
+    if (action.label === 'Copy Codex Wrapper') {
+      await vscode.env.clipboard.writeText('pingly-run --agent codex -- codex');
+      await vscode.window.showInformationMessage('Codex wrapper command copied.');
       return;
     }
 
-    if (action === 'Copy Setup Checklist') {
+    if (action.label === 'Copy Generic Wrapper') {
+      await vscode.env.clipboard.writeText('pingly-run --agent my-tool -- your-command-here');
+      await vscode.window.showInformationMessage('Generic wrapper command copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Direct Event Curl') {
+      await vscode.env.clipboard.writeText(
+        [
+          `curl -X POST ${endpoint} \\`,
+          '  -H "content-type: application/json" \\',
+          `  -d '{"type":"task_completed","message":"Local tool finished"}'`,
+        ].join('\n'),
+      );
+      await vscode.window.showInformationMessage('Direct event curl command copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Setup Checklist') {
       const checklist = [
-        '1. Expose this local webhook URL through an HTTPS tunnel:',
-        localWebhookUrl,
-        '',
-        '2. Start or open your tunnel tool and create a public HTTPS URL that forwards to the local URL above.',
-        `3. In Cursor background-agent webhook settings, paste the full public HTTPS URL ending in ${CURSOR_WEBHOOK_PATH}.`,
-        `4. Use this same webhook secret in Cursor: ${secret}`,
-        '5. FINISHED triggers completion notifications.',
-        '6. ERROR triggers a strong attention notification.',
+        '1. Install the extension and run Pingly: Run Self Test.',
+        '2. Start your local tool through a wrapper like: pingly-run --agent claude-code -- claude',
+        '3. Keep the extension open in Cursor while the tool runs.',
+        '4. Use Pingly: Test Local Notifications to verify completion, error, and approval flows.',
+        `5. Advanced scripts can post JSON directly to ${endpoint}.`,
+        '6. Native Claude Code or Codex hooks are optional; the wrapper path is the lowest-fuss default.',
       ].join('\n');
 
       await vscode.env.clipboard.writeText(checklist);
-      await vscode.window.showInformationMessage('Cursor setup checklist copied.');
+      await vscode.window.showInformationMessage('Local setup checklist copied.');
       return;
     }
 
-    if (action === 'Open Settings') {
-      await vscode.commands.executeCommand('workbench.action.openSettings', 'agentNotifier.cursorWebhookSecret');
-    }
+    await this.runHostedRelaySetup();
   }
 
   async testWebhook(): Promise<void> {
-    if (this.relayService.isConfigured()) {
-      await this.testHostedRelayWebhook();
-      return;
-    }
-
-    const config = vscode.workspace.getConfiguration('agentNotifier');
-    const port = config.get<number>('httpPort', DEFAULT_HTTP_PORT);
-    const secret = config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET).trim();
     const scenario = await vscode.window.showQuickPick(
       [
         {
-          label: 'Finished',
-          description: 'Test the normal completion popup, notification, and sound',
-          status: 'FINISHED',
-          summary: 'Cursor background agent finished successfully.',
+          label: 'Completed',
+          description: 'Test the normal completion popup, system notification, and sound',
+          eventType: AgentEventType.TASK_COMPLETED,
+          message: 'Local agent finished successfully.',
+          priority: AgentEventPriority.LOW,
         },
         {
-          label: 'Error',
-          description: 'Test the stronger attention popup, notification, and sound',
-          status: 'ERROR',
-          summary: 'Cursor background agent needs attention.',
+          label: 'Needs Attention',
+          description: 'Test the stronger error/attention notification path',
+          eventType: AgentEventType.ATTENTION_REQUIRED,
+          message: 'Local agent needs attention.',
+          priority: AgentEventPriority.HIGH,
         },
-      ],
+        {
+          label: 'Approval Needed',
+          description: 'Test the interactive allow/deny permission flow',
+          eventType: AgentEventType.PERMISSION_REQUIRED,
+          message: 'Local agent wants approval before continuing.',
+          priority: AgentEventPriority.HIGH,
+        },
+      ] satisfies LocalScenario[],
       {
-        placeHolder: 'Choose a Cursor webhook scenario to simulate locally',
+        title: 'Pingly: Test Local Notifications',
+        placeHolder: 'Choose a local event scenario to simulate',
         canPickMany: false,
       },
     );
@@ -130,43 +133,21 @@ export class CursorSetupService {
       return;
     }
 
-    const body = JSON.stringify({
-      event: 'statusChange',
-      timestamp: new Date().toISOString(),
-      id: `local_${Date.now()}`,
-      status: scenario.status,
-      summary: scenario.summary,
-      target: {
-        url: 'https://cursor.com/agents?id=local_test',
+    this.emitLocalEvent({
+      type: scenario.eventType,
+      source: AgentEventSource.CLI,
+      priority: scenario.priority,
+      agent: 'local-test',
+      message: scenario.message,
+      correlationId: `local-test:${scenario.eventType}`,
+      metadata: {
+        test: true,
+        setup: 'local-first',
       },
     });
 
-    const signature = secret
-      ? `sha256=${crypto.createHmac('sha256', secret).update(body).digest('hex')}`
-      : undefined;
-
-    const response = await postJson({
-      hostname: DEFAULT_HTTP_HOST,
-      port,
-      path: CURSOR_WEBHOOK_PATH,
-      body,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Webhook-Event': 'statusChange',
-        ...(signature ? { 'X-Webhook-Signature': signature } : {}),
-      },
-    });
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      this.logger.info(`Local Cursor webhook test accepted (${scenario.status}).`);
-      await vscode.window.showInformationMessage(`Cursor webhook ${scenario.label.toLowerCase()} test sent.`);
-      return;
-    }
-
-    this.logger.error(`Local Cursor webhook test failed (${response.statusCode}): ${response.body}`);
-    await vscode.window.showErrorMessage(
-      `Cursor webhook test failed with ${response.statusCode}: ${response.body || 'unknown error'}`,
-    );
+    this.logger.info(`Local notification test emitted (${scenario.eventType}).`);
+    await vscode.window.showInformationMessage(`Local ${scenario.label.toLowerCase()} notification test sent.`);
   }
 
   private async runHostedRelaySetup(): Promise<void> {
@@ -175,7 +156,7 @@ export class CursorSetupService {
 
     if (!credentials) {
       const action = await vscode.window.showErrorMessage(
-        'Hosted relay is configured, but this install is not registered yet. Check logs or retry after the relay becomes reachable.',
+        'Hosted relay is not registered yet. Configure the experimental relay URL and check logs if you still want Cursor cloud-agent setup.',
         'Show Logs',
       );
 
@@ -189,14 +170,12 @@ export class CursorSetupService {
     const status = this.relayService.getStatus();
     const action = await vscode.window.showQuickPick(
       [
-        { label: 'Copy Webhook URL', detail: credentials.publicWebhookUrl },
-        { label: 'Copy Webhook Secret', detail: credentials.cursorWebhookSecret },
-        { label: 'Copy Cursor Setup Checklist', detail: 'Copies the full one-time Cursor setup steps.' },
-        { label: 'Rotate Secret', detail: 'Generates a new Cursor webhook secret and updates this install.' },
-        { label: 'Test Cursor Webhook', detail: 'Sends a hosted FINISHED or ERROR test through the relay.' },
+        { label: 'Copy Hosted Webhook URL', detail: credentials.publicWebhookUrl },
+        { label: 'Copy Hosted Webhook Secret', detail: credentials.cursorWebhookSecret },
+        { label: 'Rotate Hosted Secret', detail: 'Generate a new webhook secret for the hosted relay.' },
       ],
       {
-        title: 'Cursor Agent Notifier: Setup Cursor Webhook',
+        title: 'Pingly: Hosted Cursor Relay (Experimental)',
         placeHolder: `Connection status: ${status}`,
         canPickMany: false,
       },
@@ -206,121 +185,20 @@ export class CursorSetupService {
       return;
     }
 
-    if (action.label === 'Copy Webhook URL') {
+    if (action.label === 'Copy Hosted Webhook URL') {
       await vscode.env.clipboard.writeText(credentials.publicWebhookUrl);
-      await vscode.window.showInformationMessage('Hosted Cursor webhook URL copied.');
+      await vscode.window.showInformationMessage('Hosted webhook URL copied.');
       return;
     }
 
-    if (action.label === 'Copy Webhook Secret') {
+    if (action.label === 'Copy Hosted Webhook Secret') {
       await vscode.env.clipboard.writeText(credentials.cursorWebhookSecret);
-      await vscode.window.showInformationMessage('Hosted Cursor webhook secret copied.');
+      await vscode.window.showInformationMessage('Hosted webhook secret copied.');
       return;
     }
 
-    if (action.label === 'Copy Cursor Setup Checklist') {
-      const checklist = [
-        '1. Open Cursor background-agent webhook settings.',
-        `2. Paste this webhook URL: ${credentials.publicWebhookUrl}`,
-        `3. Paste this webhook secret: ${credentials.cursorWebhookSecret}`,
-        '4. Save the Cursor webhook settings once.',
-        '5. FINISHED triggers completion notifications.',
-        '6. ERROR triggers a strong attention notification.',
-        `7. Current relay connection status: ${status}`,
-      ].join('\n');
-
-      await vscode.env.clipboard.writeText(checklist);
-      await vscode.window.showInformationMessage('Cursor setup checklist copied.');
-      return;
-    }
-
-    if (action.label === 'Rotate Secret') {
-      const updated = await this.relayService.rotateSecret();
-      await vscode.env.clipboard.writeText(updated.cursorWebhookSecret);
-      await vscode.window.showInformationMessage('Cursor webhook secret rotated and copied.');
-      return;
-    }
-
-    if (action.label === 'Test Cursor Webhook') {
-      await this.testHostedRelayWebhook();
-    }
+    const updated = await this.relayService.rotateSecret();
+    await vscode.env.clipboard.writeText(updated.cursorWebhookSecret);
+    await vscode.window.showInformationMessage('Hosted webhook secret rotated and copied.');
   }
-
-  private async testHostedRelayWebhook(): Promise<void> {
-    await this.relayService.start();
-    const scenario = await vscode.window.showQuickPick(
-      [
-        {
-          label: 'Finished',
-          description: 'Test the normal completion popup, notification, and sound',
-          status: 'FINISHED' as const,
-        },
-        {
-          label: 'Error',
-          description: 'Test the stronger attention popup, notification, and sound',
-          status: 'ERROR' as const,
-        },
-      ],
-      {
-        placeHolder: 'Choose a Cursor webhook scenario to send through the hosted relay',
-        canPickMany: false,
-      },
-    );
-
-    if (!scenario) {
-      return;
-    }
-
-    try {
-      await this.relayService.sendTestWebhook(scenario.status);
-      await vscode.window.showInformationMessage(`Cursor webhook ${scenario.label.toLowerCase()} test sent.`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Hosted relay webhook test failed: ${message}`);
-      await vscode.window.showErrorMessage(`Hosted relay webhook test failed: ${message}`);
-    }
-  }
-}
-
-type PostJsonOptions = {
-  hostname: string;
-  port: number;
-  path: string;
-  body: string;
-  headers: Record<string, string>;
-};
-
-function postJson(options: PostJsonOptions): Promise<{ statusCode: number; body: string }> {
-  return new Promise((resolve, reject) => {
-    const request = http.request(
-      {
-        method: 'POST',
-        hostname: options.hostname,
-        port: options.port,
-        path: options.path,
-        headers: {
-          'Content-Length': Buffer.byteLength(options.body).toString(),
-          ...options.headers,
-        },
-      },
-      (response) => {
-        let responseBody = '';
-
-        response.on('data', (chunk) => {
-          responseBody += chunk.toString();
-        });
-
-        response.on('end', () => {
-          resolve({
-            statusCode: response.statusCode ?? 0,
-            body: responseBody,
-          });
-        });
-      },
-    );
-
-    request.on('error', reject);
-    request.write(options.body);
-    request.end();
-  });
 }

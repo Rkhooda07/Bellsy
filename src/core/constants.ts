@@ -1,5 +1,5 @@
 export const EXTENSION_ID = 'ai-agent-notifier';
-export const OUTPUT_CHANNEL_NAME = 'AI Agent Notifier';
+export const OUTPUT_CHANNEL_NAME = 'Pingly';
 export const DEFAULT_HTTP_HOST = '127.0.0.1';
 export const DEFAULT_HTTP_PORT = 9001;
 export const CURSOR_WEBHOOK_PATH = '/cursor/webhook';

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 export class NotificationService {
   async showPermissionRequest(message: string): Promise<'Allow' | 'Deny'> {
     const result = await vscode.window.showWarningMessage(
-      `AI Agent Needs Permission\n${message}`,
+      `Pingly: Permission Needed\n${message}`,
       {
         modal: false,
       },
@@ -16,7 +16,7 @@ export class NotificationService {
 
   showTaskCompleted(message: string): Thenable<string | undefined> {
     return vscode.window.showWarningMessage(
-      `AI Agent Completed\n${message}`,
+      `Pingly: Task Completed\n${message}`,
       {
         modal: false,
       },
@@ -27,7 +27,7 @@ export class NotificationService {
 
   showAttentionRequired(message: string): Thenable<string | undefined> {
     return vscode.window.showWarningMessage(
-      `AI Agent Needs Attention\n${message}`,
+      `Pingly: Attention Required\n${message}`,
       {
         modal: false,
       },
@@ -37,13 +37,13 @@ export class NotificationService {
   }
 
   showError(message: string): Thenable<string | undefined> {
-    return vscode.window.showErrorMessage(`AI Agent Notifier Error: ${message}`);
+    return vscode.window.showErrorMessage(`Pingly Error: ${message}`);
   }
 
   async showPendingReminder(count: number): Promise<void> {
     const suffix = count === 1 ? 'request is' : 'requests are';
     const action = await vscode.window.showWarningMessage(
-      `${count} AI agent permission ${suffix} still waiting for your response.`,
+      `${count} local agent permission ${suffix} still waiting for your response.`,
       'Review Pending Requests',
     );
 

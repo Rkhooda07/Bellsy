@@ -38,22 +38,22 @@ export class StatusBarService implements vscode.Disposable {
 
     this.startPulse();
     this.item.text = this.pulseVisible
-      ? `$(bell-dot) AI permissions: ${this.pendingEvents.length}`
-      : `$(bell) AI permissions: ${this.pendingEvents.length}`;
+      ? `$(bell-dot) Pingly approvals: ${this.pendingEvents.length}`
+      : `$(bell) Pingly approvals: ${this.pendingEvents.length}`;
     this.item.color = new vscode.ThemeColor(
       this.pulseVisible ? 'statusBarItem.errorForeground' : 'statusBarItem.warningForeground',
     );
     this.item.backgroundColor = new vscode.ThemeColor(
       this.pulseVisible ? 'statusBarItem.warningBackground' : 'statusBarItem.prominentBackground',
     );
-    this.item.tooltip = `${this.pendingEvents.length} AI agent permission request(s) pending. Click to review.`;
+    this.item.tooltip = `${this.pendingEvents.length} local agent permission request(s) pending. Click to review.`;
   }
 
   private setIdle(): void {
-    this.item.text = '$(check) AI Agent Ready';
+    this.item.text = '$(check) Pingly Ready';
     this.item.color = undefined;
     this.item.backgroundColor = undefined;
-    this.item.tooltip = 'AI Agent Notifier is listening for events';
+    this.item.tooltip = 'Pingly is listening for local agent events';
   }
 
   private startPulse(): void {

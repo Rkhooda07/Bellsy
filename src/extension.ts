@@ -36,7 +36,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const eventRouter = new EventRouter();
   const relayBaseUrl = config.get<string>('relayBaseUrl', '').trim();
   const relayService = new HostedRelayService(context, logger, relayBaseUrl);
-  const cursorSetupService = new CursorSetupService(logger, relayService);
+  const cursorSetupService = new CursorSetupService(logger, relayService, (event) => {
+    EventBus.emit(event.type, {
+      id: `${event.correlationId ?? event.type}:${Date.now()}`,
+      timestamp: Date.now(),
+      metadata: {},
+      ...event,
+    });
+  });
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
@@ -147,6 +154,43 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('agentNotifier.runSelfTest', async () => {
       await notificationEngine.runSelfTest();
     }),
+    vscode.commands.registerCommand('agentNotifier.configureRelayBaseUrl', async () => {
+      const currentValue = config.get<string>('relayBaseUrl', '').trim();
+      const nextValue = await vscode.window.showInputBox({
+        title: 'Pingly: Hosted Relay URL (Experimental)',
+        prompt: 'Enter the hosted relay base URL for experimental Cursor cloud-agent support',
+        placeHolder: 'https://pingly-relay.your-subdomain.workers.dev',
+        value: currentValue,
+        ignoreFocusOut: true,
+        validateInput: (value) => {
+          const trimmed = value.trim();
+          if (!trimmed) {
+            return 'Relay base URL is required.';
+          }
+
+          try {
+            const url = new URL(trimmed);
+            if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+              return 'Relay base URL must start with http:// or https://';
+            }
+          } catch {
+            return 'Enter a valid URL.';
+          }
+
+          return null;
+        },
+      });
+
+      if (!nextValue) {
+        return;
+      }
+
+      await config.update('relayBaseUrl', nextValue.trim(), vscode.ConfigurationTarget.Global);
+      logger.info(`Relay base URL updated to ${nextValue.trim()}. Reload Cursor to reconnect with the hosted relay.`);
+      await vscode.window.showInformationMessage(
+        'Hosted relay URL saved. Reload Cursor to reconnect with the experimental hosted relay.',
+      );
+    }),
     vscode.commands.registerCommand('agentNotifier.setupCursorWebhook', async () => {
       await cursorSetupService.run();
     }),
@@ -157,7 +201,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const pendingEvents = permissionManager.getPendingEvents();
 
       if (pendingEvents.length === 0) {
-        await vscode.window.showInformationMessage('No pending AI agent permission requests.');
+        await vscode.window.showInformationMessage('No pending local agent permission requests.');
         return;
       }
 
@@ -168,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           detail: event.id,
         })),
         {
-          placeHolder: 'Pending AI agent permission requests',
+          placeHolder: 'Pending local agent permission requests',
           canPickMany: false,
         },
       );
@@ -180,7 +224,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     },
   );
 
-  logger.info('AI Agent Notifier activated');
+  logger.info('Pingly activated');
 }
 
 export function deactivate(): void {}

@@ -1,84 +1,68 @@
-# Cursor Agent Notifier
+# Pingly
 
-Cursor Agent Notifier is a Cursor-compatible extension that notifies you when a Cursor background agent finishes work or needs attention.
+Pingly is a Cursor-compatible extension for **local coding-agent notifications**. It tells you when tools like Claude Code, Codex CLI, shell scripts, and other local agent workflows finish, fail, or need approval.
 
-## Hosted Relay Flow
+## Why Use It
 
-The default Cursor flow is now hosted relay mode:
+Running local agents normally means you have to keep watching the terminal. Pingly adds one thin local notification layer:
+
+- completion notifications when a run succeeds
+- stronger attention notifications when a run fails
+- approval prompts for interactive confirmation flows
+- the same notification behavior across different local tools
+
+## Quick Start
 
 1. Install the extension in Cursor.
-2. Configure `agentNotifier.relayBaseUrl` to your deployed relay URL.
-3. Run `Cursor Agent Notifier: Run Self Test`.
-4. Run `Cursor Agent Notifier: Setup Cursor Webhook`.
-5. Copy the hosted webhook URL and webhook secret.
-6. Paste both into Cursor background-agent webhook settings once.
-7. Run `Cursor Agent Notifier: Test Cursor Webhook`.
+2. Run `Pingly: Run Self Test`.
+3. Run `Pingly: Setup Local Agent Notifications`.
+4. Copy a starter command such as:
+   - `pingly-run --agent claude-code -- claude`
+   - `pingly-run --agent codex -- codex`
+5. Run `Pingly: Test Local Notifications`.
+6. Start your local tool through `pingly-run`.
 
-After that, Cursor sends `FINISHED` and `ERROR` events to the relay, and the relay forwards normalized events to the connected extension.
+No tunnel, hosted webhook, Cursor Pro plan, or cloud-agent API is required for the primary workflow.
 
-## What It Does
+## What It Supports
 
-- Shows an in-editor completion popup when a Cursor background agent finishes
-- Shows a stronger in-editor attention popup when a Cursor background agent errors
-- Sends OS notifications for both states
-- Plays platform-appropriate sounds
-- Keeps built-in self-test and hosted webhook test commands
+- local CLI tools launched through `pingly-run`
+- direct local HTTP events at `http://127.0.0.1:9001/event`
+- approval prompts with allow/deny responses
+- shell-script and hook-based integrations for tools that can emit explicit local events
 
 ## Commands
 
-- `Cursor Agent Notifier: Run Self Test`
-- `Cursor Agent Notifier: Setup Cursor Webhook`
-- `Cursor Agent Notifier: Test Cursor Webhook`
-- `Cursor Agent Notifier: Show Logs`
-- `Cursor Agent Notifier: Show Pending Requests`
+- `Pingly: Run Self Test`
+- `Pingly: Setup Local Agent Notifications`
+- `Pingly: Test Local Notifications`
+- `Pingly: Show Logs`
+- `Pingly: Show Pending Requests`
+- `Pingly: Configure Hosted Relay URL (Experimental)`
 
-## Cursor Mapping
+## Primary Setup Path
 
-- `FINISHED` -> `task_completed`
-- `ERROR` -> `attention_required`
+Use the wrapper command:
 
-Only Cursor background-agent status webhooks are handled in relay mode. Foreground Composer/chat events and permission-request flows are intentionally out of scope.
-
-## Relay Deployment
-
-The hosted relay lives in [relay](./relay) and targets Cloudflare Workers plus Durable Objects.
-
-Expected endpoints:
-
-- `POST /v1/installs/register`
-- `POST /v1/installs/restore`
-- `GET /v1/connect/:installId`
-- `POST /v1/webhooks/cursor/:installId`
-- `POST /v1/installs/:installId/rotate-secret`
-
-Before packaging the extension for real use, deploy the Worker and set:
-
-```json
-"agentNotifier.relayBaseUrl": "https://your-relay.example.workers.dev"
+```bash
+pingly-run --agent claude-code -- claude
 ```
 
-The extension stores relay install credentials in `globalState`, not in user settings.
+or:
 
-## Settings
+```bash
+pingly-run --agent codex -- codex
+```
 
-- `agentNotifier.relayBaseUrl`
-  Base URL for the hosted relay. When set, hosted relay mode becomes the default Cursor setup path.
+`pingly-run` watches output and process exit state, then emits normalized local events:
 
-- `agentNotifier.httpPort`
-  Local loopback port used by the retained HTTP transport.
+- success -> `task_completed`
+- non-zero exit / failure signal -> `attention_required`
+- confirmation prompt -> `permission_required`
 
-- `agentNotifier.cursorWebhookSecret`
-  Optional local-only HMAC secret for direct `/cursor/webhook` fallback testing.
+## Direct Local HTTP Events
 
-- `agentNotifier.soundEnabled`
-  Enables notification sounds.
-
-- `agentNotifier.soundVolume`
-  Preferred playback volume where supported.
-
-## Explicit Local HTTP Events
-
-The extension still supports direct local HTTP events at:
+The extension also supports explicit local HTTP events at:
 
 ```text
 http://127.0.0.1:9001/event
@@ -89,7 +73,7 @@ Completion example:
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
-  -d '{"type":"task_completed","message":"Custom tool finished"}'
+  -d '{"type":"task_completed","message":"Local tool finished"}'
 ```
 
 Attention example:
@@ -97,16 +81,33 @@ Attention example:
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
-  -d '{"type":"attention_required","message":"Custom tool needs attention"}'
+  -d '{"type":"attention_required","message":"Local tool failed"}'
 ```
 
-Permission example for local workflows:
+Permission example:
 
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
   -d '{"type":"permission_required","message":"Local tool wants approval"}'
 ```
+
+## Settings
+
+- `agentNotifier.httpPort`
+  Local loopback port used by the extension.
+
+- `agentNotifier.soundEnabled`
+  Enables notification sounds.
+
+- `agentNotifier.soundVolume`
+  Preferred playback volume where supported.
+
+- `agentNotifier.transport`
+  Transport used to receive local events. `http` is the recommended default.
+
+- `agentNotifier.relayBaseUrl`
+  Optional experimental hosted relay URL for secondary Cursor cloud-agent workflows.
 
 ## File Transport
 
@@ -121,12 +122,18 @@ Defaults:
 - request file: `/tmp/agent_event.json`
 - response file: `/tmp/agent_response.json`
 
+## Experimental Hosted Relay
+
+The old hosted Cursor relay remains in the repo as a secondary/experimental path. It is no longer the primary workflow and may require paid Cursor cloud-agent access.
+
+Relay code and deployment notes live in [relay](./relay).
+
 ## Troubleshooting
 
-- If activation succeeds but relay setup is unavailable, check `agentNotifier.relayBaseUrl` and `Cursor Agent Notifier: Show Logs`.
-- If the hosted webhook test is accepted but no notification appears, the extension is not currently connected to the relay.
-- If local HTTP events do not work, check whether port `9001` is already in use.
+- If local events do not work, check whether port `9001` is already in use.
+- If wrapper runs do not notify, run `Pingly: Show Logs`.
+- If approvals do not appear, confirm the tool is emitting recognizable confirmation text or send explicit `permission_required` events.
 
 ## Release Status
 
-This is still a preview release focused on Cursor background-agent notifications.
+This is a preview release focused on local coding-agent notifications.

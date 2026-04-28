@@ -1,6 +1,6 @@
 # Integration Examples
 
-These examples are meant to shorten setup for local coding-agent workflows around Cursor Agent Notifier.
+These examples are meant to shorten setup for local coding-agent workflows around Pingly.
 
 ## Files
 
@@ -8,11 +8,28 @@ These examples are meant to shorten setup for local coding-agent workflows aroun
 - `codex-hook.example.sh`: shell example for Codex-style workflows
 - `claude-code-hook.example.sh`: shell example for Claude Code-style workflows
 
+## Lowest-Fuss Path
+
+The easiest setup is the wrapper command:
+
+```bash
+pingly-run --agent claude-code -- claude
+pingly-run --agent codex -- codex
+pingly-run --agent my-tool -- your-command-here
+```
+
+That path gives you:
+
+- completion notifications on success
+- attention notifications on non-zero exit or failure text
+- approval prompts when interactive confirmation patterns are detected
+
 ## Generic Sender
 
 ```bash
 node examples/send-event.js task_completed "Codex finished writing tests"
-node examples/send-event.js permission_required "Codex wants to run npm install"
+node examples/send-event.js attention_required "Codex run failed"
+node examples/send-event.js permission_required "Claude Code wants approval"
 ```
 
 Environment variables:
@@ -25,6 +42,6 @@ Environment variables:
 The shell examples are templates. Adapt them to the hook mechanism your tool exposes.
 
 - Use HTTP transport when you want synchronous allow or deny responses.
-- Cursor background agents can target `/cursor/webhook`, but they need a public HTTPS URL or tunnel to reach your local extension.
-- Use file transport when your local workflow is simpler and polling a response file is acceptable.
-- Current release support is based on explicit events from hooks or scripts, not generic CLI interception.
+- Use `pingly-run` when you want the least setup and broadest compatibility.
+- Use native hooks when the tool already gives you a clean pre/post action surface.
+- Use file transport only for advanced local workflows that prefer file polling over HTTP.

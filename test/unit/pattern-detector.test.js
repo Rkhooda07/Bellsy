@@ -34,6 +34,27 @@ test('emits process completion on successful exit', () => {
   assert.equal(events[0].type, AgentEventType.TASK_COMPLETED);
 });
 
+test('emits attention-required on non-zero exit', () => {
+  const detector = new PatternDetector({ agent: 'codex' });
+
+  const events = detector.onExit(2);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, AgentEventType.ATTENTION_REQUIRED);
+  assert.equal(events[0].priority, AgentEventPriority.HIGH);
+  assert.match(events[0].message, /exited with code 2/i);
+});
+
+test('detects failure phrases from recent output lines', () => {
+  const detector = new PatternDetector({ agent: 'claude-code' });
+
+  const events = detector.ingest('Applying patch\nError: tests failed\n');
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, AgentEventType.ATTENTION_REQUIRED);
+  assert.equal(events[0].priority, AgentEventPriority.HIGH);
+});
+
 test('dedupes repeated signals within the cooldown window', () => {
   let time = 10_000;
   const detector = new PatternDetector({

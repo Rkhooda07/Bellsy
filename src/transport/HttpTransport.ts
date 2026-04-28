@@ -41,7 +41,9 @@ export class HttpTransport implements ITransport, IResponseTarget {
     });
 
     this.logger.info(`HTTP transport listening on http://${DEFAULT_HTTP_HOST}:${this.port}/event`);
-    this.logger.info(`Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.port}${CURSOR_WEBHOOK_PATH}`);
+    this.logger.info(
+      `Experimental Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.port}${CURSOR_WEBHOOK_PATH}`,
+    );
   }
 
   onEvent(callback: (event: AgentEvent) => void): void {

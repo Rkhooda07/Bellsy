@@ -11,6 +11,7 @@ type DetectorOptions = {
   agent?: string;
   permissionPatterns?: RegExp[];
   completionPatterns?: RegExp[];
+  failurePatterns?: RegExp[];
   cooldownMs?: number;
   now?: () => number;
 };
@@ -30,10 +31,18 @@ const DEFAULT_COMPLETION_PATTERNS = [
   /\bresponse finished\b/i,
   /(?:^|\s)done[.!]?\s*$/i,
 ];
+const DEFAULT_FAILURE_PATTERNS = [
+  /\berror\b/i,
+  /\bfailed\b/i,
+  /\bexception\b/i,
+  /\bneeds attention\b/i,
+  /\bexited with code\b/i,
+];
 
 export class PatternDetector {
   private readonly permissionPatterns: RegExp[];
   private readonly completionPatterns: RegExp[];
+  private readonly failurePatterns: RegExp[];
   private readonly cooldownMs: number;
   private readonly now: () => number;
   private buffer = '';
@@ -42,6 +51,7 @@ export class PatternDetector {
   constructor(private readonly options: DetectorOptions = {}) {
     this.permissionPatterns = options.permissionPatterns ?? DEFAULT_PERMISSION_PATTERNS;
     this.completionPatterns = options.completionPatterns ?? DEFAULT_COMPLETION_PATTERNS;
+    this.failurePatterns = options.failurePatterns ?? DEFAULT_FAILURE_PATTERNS;
     this.cooldownMs = options.cooldownMs ?? 5_000;
     this.now = options.now ?? Date.now;
   }
@@ -69,19 +79,43 @@ export class PatternDetector {
       });
     }
 
+    if (this.matches(this.failurePatterns, this.recentLine()) && this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
+      events.push({
+        type: AgentEventType.ATTENTION_REQUIRED,
+        message: this.formatMessage('Task needs attention'),
+        priority: AgentEventPriority.HIGH,
+        confidence: 'medium',
+      });
+    }
+
     return events;
   }
 
   onExit(exitCode: number | null): DetectedCliEvent[] {
-    if (exitCode !== 0 || !this.canEmit(AgentEventType.TASK_COMPLETED)) {
+    if (exitCode === 0) {
+      if (!this.canEmit(AgentEventType.TASK_COMPLETED)) {
+        return [];
+      }
+
+      return [
+        {
+          type: AgentEventType.TASK_COMPLETED,
+          message: this.formatMessage('Process completed successfully'),
+          priority: AgentEventPriority.LOW,
+          confidence: 'high',
+        },
+      ];
+    }
+
+    if (!this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
       return [];
     }
 
     return [
       {
-        type: AgentEventType.TASK_COMPLETED,
-        message: this.formatMessage('Process completed successfully'),
-        priority: AgentEventPriority.LOW,
+        type: AgentEventType.ATTENTION_REQUIRED,
+        message: this.formatMessage(`Process exited with code ${exitCode ?? 1}`),
+        priority: AgentEventPriority.HIGH,
         confidence: 'high',
       },
     ];

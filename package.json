@@ -1,7 +1,7 @@
 {
   "name": "ai-agent-notifier",
-  "displayName": "Cursor Agent Notifier",
-  "description": "Notifications for Cursor background agents when work finishes or needs attention.",
+  "displayName": "Pingly",
+  "description": "Notifications for local coding agents, scripts, and CLI tools when work finishes, fails, or needs approval.",
   "version": "0.2.0",
   "publisher": "rkhooda07",
   "license": "MIT",
@@ -35,6 +35,7 @@
     "onCommand:agentNotifier.showLogs",
     "onCommand:agentNotifier.runSelfTest",
     "onCommand:agentNotifier.showPendingList",
+    "onCommand:agentNotifier.configureRelayBaseUrl",
     "onCommand:agentNotifier.setupCursorWebhook",
     "onCommand:agentNotifier.testCursorWebhook"
   ],
@@ -47,27 +48,31 @@
     "commands": [
       {
         "command": "agentNotifier.showLogs",
-        "title": "Cursor Agent Notifier: Show Logs"
+        "title": "Pingly: Show Logs"
       },
       {
         "command": "agentNotifier.runSelfTest",
-        "title": "Cursor Agent Notifier: Run Self Test"
+        "title": "Pingly: Run Self Test"
+      },
+      {
+        "command": "agentNotifier.configureRelayBaseUrl",
+        "title": "Pingly: Configure Hosted Relay URL (Experimental)"
       },
       {
         "command": "agentNotifier.showPendingList",
-        "title": "Cursor Agent Notifier: Show Pending Requests"
+        "title": "Pingly: Show Pending Requests"
       },
       {
         "command": "agentNotifier.setupCursorWebhook",
-        "title": "Cursor Agent Notifier: Setup Cursor Webhook"
+        "title": "Pingly: Setup Local Agent Notifications"
       },
       {
         "command": "agentNotifier.testCursorWebhook",
-        "title": "Cursor Agent Notifier: Test Cursor Webhook"
+        "title": "Pingly: Test Local Notifications"
       }
     ],
     "configuration": {
-      "title": "Cursor Agent Notifier",
+      "title": "Pingly",
       "properties": {
         "agentNotifier.transport": {
           "type": "string",
@@ -88,12 +93,12 @@
         "agentNotifier.relayBaseUrl": {
           "type": "string",
           "default": "",
-          "description": "Base URL for the hosted Cursor relay, for example https://your-relay.example.workers.dev. When set, Cursor webhook setup uses the hosted relay by default."
+          "description": "Optional hosted relay base URL for experimental Cursor cloud-agent webhook support."
         },
         "agentNotifier.cursorWebhookSecret": {
           "type": "string",
           "default": "",
-          "description": "Optional HMAC secret used to verify Cursor background-agent webhooks sent to /cursor/webhook. Set this to the same secret you configure in Cursor."
+          "description": "Optional HMAC secret used to verify direct Cursor webhooks sent to /cursor/webhook for experimental hosted flows."
         },
         "agentNotifier.watchFilePath": {
           "type": "string",

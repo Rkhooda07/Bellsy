@@ -4,7 +4,7 @@ const [type, ...messageParts] = process.argv.slice(2);
 const message = messageParts.join(' ').trim();
 
 if (!type || !message) {
-  console.error('Usage: node examples/send-event.js <permission_required|task_completed> <message>');
+  console.error('Usage: node examples/send-event.js <permission_required|task_completed|attention_required> <message>');
   process.exit(1);
 }
 
