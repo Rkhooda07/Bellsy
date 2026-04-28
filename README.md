@@ -49,6 +49,13 @@ This release is intentionally narrow. It is built around Cursor's documented bac
 7. Expose the local webhook endpoint through any HTTPS tunnel.
 8. Paste the public webhook URL and the copied secret into Cursor background-agent webhook settings.
 
+Tunnel guidance in plain English:
+
+- your extension listens locally on `http://127.0.0.1:9001/cursor/webhook`
+- Cursor sends background-agent webhooks from the cloud
+- so you need a public `https://.../cursor/webhook` address that forwards to your local endpoint
+- `Cursor Agent Notifier: Setup Cursor Webhook` now includes `Copy Tunnel Guide` so users can copy the exact setup reminder
+
 Local endpoint used by the extension:
 
 ```text

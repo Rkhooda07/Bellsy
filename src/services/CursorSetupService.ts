@@ -28,6 +28,7 @@ export class CursorSetupService {
       message,
       'Copy Secret',
       'Copy Local URL',
+      'Copy Tunnel Guide',
       'Copy Setup Checklist',
       'Open Settings',
     );
@@ -44,15 +45,36 @@ export class CursorSetupService {
       return;
     }
 
+    if (action === 'Copy Tunnel Guide') {
+      const tunnelGuide = [
+        'Cursor background-agent webhooks come from the cloud, so Cursor cannot call 127.0.0.1 directly.',
+        '',
+        'What you need:',
+        `- a public HTTPS URL that forwards to ${localWebhookUrl}`,
+        '- the same webhook secret in both Cursor and this extension',
+        '',
+        'After your tunnel is running:',
+        `1. Copy the public HTTPS URL from your tunnel tool, for example https://your-url.example.com${CURSOR_WEBHOOK_PATH}`,
+        '2. Paste that full public URL into Cursor background-agent webhook settings.',
+        `3. Paste this same secret into Cursor: ${secret}`,
+        '4. Run Cursor Agent Notifier: Test Cursor Webhook to confirm the local route works before using a real background agent.',
+      ].join('\n');
+
+      await vscode.env.clipboard.writeText(tunnelGuide);
+      await vscode.window.showInformationMessage('Cursor tunnel guidance copied.');
+      return;
+    }
+
     if (action === 'Copy Setup Checklist') {
       const checklist = [
         '1. Expose this local webhook URL through an HTTPS tunnel:',
         localWebhookUrl,
         '',
-        '2. In Cursor background-agent webhook settings, paste the public HTTPS URL ending in /cursor/webhook.',
-        `3. Use this same webhook secret in Cursor: ${secret}`,
-        '4. FINISHED triggers completion notifications.',
-        '5. ERROR triggers a strong attention notification.',
+        '2. Start or open your tunnel tool and create a public HTTPS URL that forwards to the local URL above.',
+        `3. In Cursor background-agent webhook settings, paste the full public HTTPS URL ending in ${CURSOR_WEBHOOK_PATH}.`,
+        `4. Use this same webhook secret in Cursor: ${secret}`,
+        '5. FINISHED triggers completion notifications.',
+        '6. ERROR triggers a strong attention notification.',
       ].join('\n');
 
       await vscode.env.clipboard.writeText(checklist);
