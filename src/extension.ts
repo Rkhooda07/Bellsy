@@ -129,6 +129,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('agentNotifier.setupCursorWebhook', async () => {
       await cursorSetupService.run();
     }),
+    vscode.commands.registerCommand('agentNotifier.testCursorWebhook', async () => {
+      await cursorSetupService.testWebhook();
+    }),
     vscode.commands.registerCommand('agentNotifier.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();
 

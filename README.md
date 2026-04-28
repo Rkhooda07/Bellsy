@@ -29,6 +29,7 @@ This release is intentionally narrow. It is built around Cursor's documented bac
 
 - `Cursor Agent Notifier: Run Self Test`
 - `Cursor Agent Notifier: Setup Cursor Webhook`
+- `Cursor Agent Notifier: Test Cursor Webhook`
 - `Cursor Agent Notifier: Show Logs`
 - `Cursor Agent Notifier: Show Pending Requests`
 
@@ -42,8 +43,11 @@ This release is intentionally narrow. It is built around Cursor's documented bac
    - the correct sound
 4. Run `Cursor Agent Notifier: Setup Cursor Webhook`.
 5. Copy the generated secret.
-6. Expose the local webhook endpoint through any HTTPS tunnel.
-7. Paste the public webhook URL and the copied secret into Cursor background-agent webhook settings.
+6. Run `Cursor Agent Notifier: Test Cursor Webhook` and verify both:
+   - `Finished` -> completion notification
+   - `Error` -> strong attention notification
+7. Expose the local webhook endpoint through any HTTPS tunnel.
+8. Paste the public webhook URL and the copied secret into Cursor background-agent webhook settings.
 
 Local endpoint used by the extension:
 
@@ -55,6 +59,7 @@ Important:
 
 - Cursor background-agent webhooks come from Cursor's cloud, so they cannot call `127.0.0.1` directly.
 - You must point Cursor at a public HTTPS URL that forwards to your local `/cursor/webhook` endpoint.
+- The built-in webhook test verifies the local Cursor webhook route before you connect a real background agent.
 
 ## Cursor Mapping
 
@@ -125,7 +130,7 @@ Defaults:
 ## Troubleshooting
 
 - If the extension does not activate, run `Cursor Agent Notifier: Show Logs`.
-- If self-test works but Cursor background-agent notifications do not arrive, the webhook URL is not reaching your local machine yet.
+- If `Cursor Agent Notifier: Test Cursor Webhook` works but real Cursor background-agent notifications do not arrive, the webhook URL is not reaching your local machine yet.
 - If port `9001` is already in use, change `agentNotifier.httpPort`.
 - If notifications do not appear, check Cursor notification permissions in your OS.
 

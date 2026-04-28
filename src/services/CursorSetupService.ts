@@ -1,7 +1,9 @@
+import * as crypto from 'crypto';
+import * as http from 'http';
 import * as vscode from 'vscode';
 import { v4 as uuid } from 'uuid';
 
-import { CURSOR_WEBHOOK_PATH, DEFAULT_CURSOR_WEBHOOK_SECRET, DEFAULT_HTTP_PORT } from '../core/constants';
+import { CURSOR_WEBHOOK_PATH, DEFAULT_CURSOR_WEBHOOK_SECRET, DEFAULT_HTTP_HOST, DEFAULT_HTTP_PORT } from '../core/constants';
 import { OutputChannelLogger } from './OutputChannelLogger';
 
 export class CursorSetupService {
@@ -62,4 +64,115 @@ export class CursorSetupService {
       await vscode.commands.executeCommand('workbench.action.openSettings', 'agentNotifier.cursorWebhookSecret');
     }
   }
+
+  async testWebhook(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('agentNotifier');
+    const port = config.get<number>('httpPort', DEFAULT_HTTP_PORT);
+    const secret = config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET).trim();
+    const scenario = await vscode.window.showQuickPick(
+      [
+        {
+          label: 'Finished',
+          description: 'Test the normal completion popup, notification, and sound',
+          status: 'FINISHED',
+          summary: 'Cursor background agent finished successfully.',
+        },
+        {
+          label: 'Error',
+          description: 'Test the stronger attention popup, notification, and sound',
+          status: 'ERROR',
+          summary: 'Cursor background agent needs attention.',
+        },
+      ],
+      {
+        placeHolder: 'Choose a Cursor webhook scenario to simulate locally',
+        canPickMany: false,
+      },
+    );
+
+    if (!scenario) {
+      return;
+    }
+
+    const body = JSON.stringify({
+      event: 'statusChange',
+      timestamp: new Date().toISOString(),
+      id: `local_${Date.now()}`,
+      status: scenario.status,
+      summary: scenario.summary,
+      target: {
+        url: 'https://cursor.com/agents?id=local_test',
+      },
+    });
+
+    const signature = secret
+      ? `sha256=${crypto.createHmac('sha256', secret).update(body).digest('hex')}`
+      : undefined;
+
+    const response = await postJson({
+      hostname: DEFAULT_HTTP_HOST,
+      port,
+      path: CURSOR_WEBHOOK_PATH,
+      body,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Webhook-Event': 'statusChange',
+        ...(signature ? { 'X-Webhook-Signature': signature } : {}),
+      },
+    });
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      this.logger.info(`Local Cursor webhook test accepted (${scenario.status}).`);
+      await vscode.window.showInformationMessage(`Cursor webhook ${scenario.label.toLowerCase()} test sent.`);
+      return;
+    }
+
+    this.logger.error(`Local Cursor webhook test failed (${response.statusCode}): ${response.body}`);
+    await vscode.window.showErrorMessage(
+      `Cursor webhook test failed with ${response.statusCode}: ${response.body || 'unknown error'}`,
+    );
+  }
+}
+
+type PostJsonOptions = {
+  hostname: string;
+  port: number;
+  path: string;
+  body: string;
+  headers: Record<string, string>;
+};
+
+function postJson(options: PostJsonOptions): Promise<{ statusCode: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const request = http.request(
+      {
+        method: 'POST',
+        hostname: options.hostname,
+        port: options.port,
+        path: options.path,
+        headers: {
+          'Content-Length': Buffer.byteLength(options.body).toString(),
+          ...options.headers,
+        },
+      },
+      (response) => {
+        let responseBody = '';
+
+        response.on('data', (chunk) => {
+          responseBody += chunk.toString();
+        });
+
+        response.on('end', () => {
+          resolve({
+            statusCode: response.statusCode ?? 0,
+            body: responseBody,
+          });
+        });
+      },
+    );
+
+    request.on('error', reject);
+    request.write(options.body);
+    request.end();
+  });
 }

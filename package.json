@@ -35,7 +35,8 @@
     "onCommand:agentNotifier.showLogs",
     "onCommand:agentNotifier.runSelfTest",
     "onCommand:agentNotifier.showPendingList",
-    "onCommand:agentNotifier.setupCursorWebhook"
+    "onCommand:agentNotifier.setupCursorWebhook",
+    "onCommand:agentNotifier.testCursorWebhook"
   ],
   "main": "./out/extension.js",
   "bin": {
@@ -59,6 +60,10 @@
       {
         "command": "agentNotifier.setupCursorWebhook",
         "title": "Cursor Agent Notifier: Setup Cursor Webhook"
+      },
+      {
+        "command": "agentNotifier.testCursorWebhook",
+        "title": "Cursor Agent Notifier: Test Cursor Webhook"
       }
     ],
     "configuration": {
