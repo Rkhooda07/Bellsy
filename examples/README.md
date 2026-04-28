@@ -1,6 +1,6 @@
 # Integration Examples
 
-These examples are meant to shorten setup for local coding-agent workflows.
+These examples are meant to shorten setup for local coding-agent workflows around Cursor Agent Notifier.
 
 ## Files
 
@@ -22,7 +22,7 @@ Environment variables:
 
 ## Hook Examples
 
-The shell examples are templates. Adapt them to the hook mechanism your agent exposes.
+The shell examples are templates. Adapt them to the hook mechanism your tool exposes.
 
 - Use HTTP transport when you want synchronous allow or deny responses.
 - Cursor background agents can target `/cursor/webhook`, but they need a public HTTPS URL or tunnel to reach your local extension.

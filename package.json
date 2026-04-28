@@ -1,7 +1,7 @@
 {
   "name": "ai-agent-notifier",
-  "displayName": "AI Agent Notifier",
-  "description": "Local notifications for coding agents when they need approval or finish work.",
+  "displayName": "Cursor Agent Notifier",
+  "description": "Notifications for Cursor background agents when work finishes or needs attention.",
   "version": "0.2.0",
   "publisher": "rkhooda07",
   "license": "MIT",
@@ -14,13 +14,12 @@
     "Other"
   ],
   "keywords": [
-    "ai",
-    "agent",
-    "notifications",
-    "codex",
-    "claude-code",
     "cursor",
-    "permissions",
+    "cursor-agent",
+    "background-agent",
+    "notifications",
+    "agent",
+    "webhook",
     "productivity"
   ],
   "repository": {
@@ -35,7 +34,8 @@
     "onStartupFinished",
     "onCommand:agentNotifier.showLogs",
     "onCommand:agentNotifier.runSelfTest",
-    "onCommand:agentNotifier.showPendingList"
+    "onCommand:agentNotifier.showPendingList",
+    "onCommand:agentNotifier.setupCursorWebhook"
   ],
   "main": "./out/extension.js",
   "bin": {
@@ -46,19 +46,23 @@
     "commands": [
       {
         "command": "agentNotifier.showLogs",
-        "title": "AI Notifier: Show Logs"
+        "title": "Cursor Agent Notifier: Show Logs"
       },
       {
         "command": "agentNotifier.runSelfTest",
-        "title": "AI Notifier: Run Self Test"
+        "title": "Cursor Agent Notifier: Run Self Test"
       },
       {
         "command": "agentNotifier.showPendingList",
-        "title": "AI Notifier: Show Pending Requests"
+        "title": "Cursor Agent Notifier: Show Pending Requests"
+      },
+      {
+        "command": "agentNotifier.setupCursorWebhook",
+        "title": "Cursor Agent Notifier: Setup Cursor Webhook"
       }
     ],
     "configuration": {
-      "title": "AI Agent Notifier",
+      "title": "Cursor Agent Notifier",
       "properties": {
         "agentNotifier.transport": {
           "type": "string",

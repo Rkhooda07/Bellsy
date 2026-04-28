@@ -1,124 +1,51 @@
-# AI Agent Notifier
+# Cursor Agent Notifier
 
-AI Agent Notifier is a VS Code extension for one job: **tell you when an AI agent needs your attention**.
+Cursor Agent Notifier is a Cursor-compatible extension focused on one job: **notify you when a Cursor background agent finishes work or needs attention**.
 
-It is designed for workflows where VS Code, local scripts, or editor-integrated agents can send a small event to VS Code and get back a fast approval signal.
+This release is intentionally narrow. It is built around Cursor's documented background-agent webhook flow, not around unsupported scraping of Cursor's foreground chat UI.
 
-## What Problem It Solves
+## What It Does
 
-- Shows in-editor permission prompts with `Allow` and `Deny`
-- Sends OS notifications for permission requests and task completion
-- Sends urgent attention alerts when a supported agent reports an error state
-- Plays optional sounds for high-signal events
-- Keeps pending approvals visible in the status bar
-- Accepts events over loopback HTTP or file-watch transport
-- Returns permission responses over HTTP or a response file
+- Shows a visible in-editor completion popup when a Cursor background agent finishes
+- Shows a stronger in-editor attention popup when a Cursor background agent errors
+- Sends OS notifications for both states
+- Plays platform-appropriate sounds
+- Keeps a built-in self-test so users can verify notifications immediately
 
-## Best Fit
+## What It Supports In This Release
 
-This extension is for:
+- Cursor background-agent `FINISHED` -> completion notification
+- Cursor background-agent `ERROR` -> strong attention notification
+- Explicit local HTTP events if you want to integrate your own scripts or tools
+- File transport for local request/response workflows
 
-- local coding-agent workflows
-- editor-integrated agents
-- scripts or hooks that can send local HTTP/file events
-- AI-assisted development setups where VS Code is open but not always focused
+## What It Does Not Support
 
-This extension is not trying to be:
-
-- a chat interface
-- an AI dashboard
-- a telemetry product
-
-## Install And Run
-
-```bash
-npm install
-npm run build
-npm test
-npm run package
-```
-
-Open the workspace in VS Code and start `Run AI Agent Notifier` from `.vscode/launch.json`.
+- Automatic detection of normal Cursor Composer/chat replies
+- Automatic detection of Cursor permission prompts from the foreground agent UI
+- Generic interception of arbitrary terminal agents
 
 ## Commands
 
-- `AI Notifier: Show Logs`
-- `AI Notifier: Run Self Test`
-- `AI Notifier: Show Pending Requests`
+- `Cursor Agent Notifier: Run Self Test`
+- `Cursor Agent Notifier: Setup Cursor Webhook`
+- `Cursor Agent Notifier: Show Logs`
+- `Cursor Agent Notifier: Show Pending Requests`
 
-## How To Test It
+## Quick Start
 
-1. Install or run the extension in VS Code.
-2. Run `AI Notifier: Run Self Test` from the Command Palette.
-3. Confirm that you receive:
-   a visible VS Code popup,
-   a system notification,
-   and the platform-appropriate sound.
-4. Use the HTTP or file transport examples below to verify a real event path.
+1. Install the extension in Cursor.
+2. Run `Cursor Agent Notifier: Run Self Test`.
+3. Confirm that you get:
+   - a Cursor popup
+   - a system notification
+   - the correct sound
+4. Run `Cursor Agent Notifier: Setup Cursor Webhook`.
+5. Copy the generated secret.
+6. Expose the local webhook endpoint through any HTTPS tunnel.
+7. Paste the public webhook URL and the copied secret into Cursor background-agent webhook settings.
 
-## Event Shape
-
-```json
-{
-  "type": "permission_required",
-  "message": "AI wants to run npm install",
-  "id": "optional-stable-id",
-  "timestamp": 1760000000000,
-  "metadata": {
-    "tool": "codex"
-  }
-}
-```
-
-Supported event types:
-
-- `permission_required`
-- `attention_required`
-- `task_completed`
-
-Optional normalized fields:
-
-- `source`: `vscode`, `cli`, `external_agent`, `file`, `http`, or `simulator`
-- `priority`: `high` or `low`
-- `agent`: tool name such as `codex`, `claude`, or `copilot`
-- `correlationId`: stable run id used to dedupe repeated events
-
-## HTTP Transport
-
-Default endpoint: `http://127.0.0.1:9001/event`
-
-Use this when a script, hook, or external tool can send explicit events to the extension.
-
-Completion event:
-
-```bash
-curl -X POST http://127.0.0.1:9001/event \
-  -H "content-type: application/json" \
-  -d '{"type":"task_completed","message":"Codex finished generating a patch"}'
-```
-
-Permission request:
-
-```bash
-curl -X POST http://127.0.0.1:9001/event \
-  -H "content-type: application/json" \
-  -d '{"type":"permission_required","message":"Claude Code wants to run npm install"}'
-```
-
-If the user responds, the HTTP caller receives:
-
-```json
-{
-  "status": "responded",
-  "eventId": "3fe8d9d4-b8c1-4e31-9f49-61ab730e1b66",
-  "allowed": true,
-  "respondedAt": 1760000000000
-}
-```
-
-## Cursor Background Agents
-
-Cursor background agents can send signed `statusChange` webhooks to:
+Local endpoint used by the extension:
 
 ```text
 http://127.0.0.1:9001/cursor/webhook
@@ -126,93 +53,82 @@ http://127.0.0.1:9001/cursor/webhook
 
 Important:
 
-- Cursor background agents run remotely, so Cursor cannot reach `127.0.0.1` directly.
-- To use this from a desktop machine, expose the local port through a tunnel or relay and point Cursor to that public HTTPS URL.
-- Set `agentNotifier.cursorWebhookSecret` to the same HMAC secret you configure in Cursor.
+- Cursor background-agent webhooks come from Cursor's cloud, so they cannot call `127.0.0.1` directly.
+- You must point Cursor at a public HTTPS URL that forwards to your local `/cursor/webhook` endpoint.
 
-Cursor mapping in this release:
+## Cursor Mapping
 
 - `FINISHED` -> `task_completed`
 - `ERROR` -> `attention_required`
 
-Cursor does **not** send interactive Allow/Deny permission prompts through this webhook API, so this integration covers completion and error attention, not remote command approvals.
+This is the clean, documented Cursor integration path. Cursor's current webhook API does not send interactive Allow/Deny permission requests.
+
+## Settings
+
+- `agentNotifier.httpPort`
+  The local loopback port used by the extension.
+
+- `agentNotifier.cursorWebhookSecret`
+  The HMAC secret used to verify Cursor background-agent webhooks. Use the same secret in Cursor.
+
+- `agentNotifier.soundEnabled`
+  Enables notification sounds.
+
+- `agentNotifier.soundVolume`
+  Preferred playback volume where supported.
+
+## Explicit HTTP Events
+
+The extension still supports direct local HTTP events at:
+
+```text
+http://127.0.0.1:9001/event
+```
+
+Completion example:
+
+```bash
+curl -X POST http://127.0.0.1:9001/event \
+  -H "content-type: application/json" \
+  -d '{"type":"task_completed","message":"Custom tool finished"}'
+```
+
+Attention example:
+
+```bash
+curl -X POST http://127.0.0.1:9001/event \
+  -H "content-type: application/json" \
+  -d '{"type":"attention_required","message":"Custom tool needs attention"}'
+```
+
+Permission example for custom local workflows:
+
+```bash
+curl -X POST http://127.0.0.1:9001/event \
+  -H "content-type: application/json" \
+  -d '{"type":"permission_required","message":"Local tool wants approval"}'
+```
 
 ## File Transport
 
-Use this when a local workflow is simpler with a watched request file and a response file.
+If you prefer file-based local workflows, set:
 
-Set `agentNotifier.transport` to `file`.
+```json
+"agentNotifier.transport": "file"
+```
 
-Default paths:
+Defaults:
 
 - request file: `/tmp/agent_event.json`
 - response file: `/tmp/agent_response.json`
 
-Write an event to the request file:
-
-```json
-{
-  "type": "permission_required",
-  "message": "Codex wants to edit package.json"
-}
-```
-
-When the user answers a permission request, the extension writes:
-
-```json
-{
-  "eventId": "3fe8d9d4-b8c1-4e31-9f49-61ab730e1b66",
-  "allowed": false,
-  "respondedAt": 1760000000000
-}
-```
-
-## CLI-Agent Helpers
-
-Helper examples live in [the examples guide](https://github.com/Rkhooda07/Pingly/blob/main/examples/README.md).
-
-Included examples:
-
-- generic Node sender
-- Codex shell hook example
-- Claude Code shell hook example
-
-Current release guidance:
-
-- use explicit HTTP events from scripts, hooks, or external tools
-- use file transport when a local workflow is simpler with request/response files
-- do not rely on generic terminal interception as a supported feature in this release
-
-## Supported In This Release
-
-- VS Code extension usage
-- in-editor permission prompts and completion popups
-- system notifications on macOS, Windows, and Linux
-- explicit HTTP event delivery
-- Cursor background-agent webhook ingestion through the HTTP transport
-- file-based event delivery
-- self-test, logs, and pending request inspection
-
-Not officially supported in this release:
-
-- generic interception of any arbitrary CLI agent terminal session
-- automatic foreground Cursor or Antigravity chat lifecycle detection
-- agent-specific adapters beyond explicit script or hook integration
-
-## Security Model
-
-- The HTTP server binds to `127.0.0.1` only.
-- There is no remote auth layer because the intended use is same-machine local tooling.
-- If you expose the port through a tunnel for Cursor webhooks, set `agentNotifier.cursorWebhookSecret` and use the same secret in Cursor.
-
 ## Troubleshooting
 
-- If the extension fails to activate, run `AI Notifier: Show Logs`.
-- Run `AI Notifier: Run Self Test` to verify popup, system notification, and sound behavior.
+- If the extension does not activate, run `Cursor Agent Notifier: Show Logs`.
+- If self-test works but Cursor background-agent notifications do not arrive, the webhook URL is not reaching your local machine yet.
 - If port `9001` is already in use, change `agentNotifier.httpPort`.
-- If OS notifications do not appear, check your OS notification permissions for VS Code, Cursor, or VSCodium.
-- If sounds do not play on Linux, ensure `paplay` or `aplay` is available.
+- If notifications do not appear, check Cursor notification permissions in your OS.
 
 ## Release Status
 
-This is a **preview release** intended for early users running local coding agents.
+This is a **preview** release focused on Cursor background-agent notifications.

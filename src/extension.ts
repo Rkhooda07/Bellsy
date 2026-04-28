@@ -5,8 +5,8 @@ import EventBus from './core/EventBus';
 import { EventRouter } from './core/EventRouter';
 import {
   DEFAULT_HTTP_PORT,
-  DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
   DEFAULT_CURSOR_WEBHOOK_SECRET,
+  DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
   DEFAULT_PERMISSION_REMINDER_ENABLED,
   DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
   DEFAULT_SOUND_VOLUME,
@@ -14,12 +14,12 @@ import {
   DEFAULT_WATCH_RESPONSE_FILE_PATH,
 } from './core/constants';
 import { AgentEventType } from './core/types';
-import { AgentSimulator } from './simulation/AgentSimulator';
 import { NotificationEngine } from './services/NotificationEngine';
 import { NotificationService } from './services/NotificationService';
 import { OutputChannelLogger } from './services/OutputChannelLogger';
 import { PermissionManager } from './services/PermissionManager';
 import { IResponseTarget, ResponseDispatcher } from './services/ResponseDispatcher';
+import { CursorSetupService } from './services/CursorSetupService';
 import { SoundService } from './services/SoundService';
 import { StatusBarService } from './services/StatusBarService';
 import { SystemNotifService } from './services/SystemNotifService';
@@ -29,11 +29,11 @@ import { TransportFactory } from './transport/TransportFactory';
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const logger = new OutputChannelLogger();
   const config = vscode.workspace.getConfiguration('agentNotifier');
-  const simulator = new AgentSimulator();
   const notificationService = new NotificationService();
   const statusBarService = new StatusBarService();
   const dispatcher = new ResponseDispatcher();
   const eventRouter = new EventRouter();
+  const cursorSetupService = new CursorSetupService(logger);
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
@@ -125,6 +125,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
     vscode.commands.registerCommand('agentNotifier.runSelfTest', async () => {
       await notificationEngine.runSelfTest();
+    }),
+    vscode.commands.registerCommand('agentNotifier.setupCursorWebhook', async () => {
+      await cursorSetupService.run();
     }),
     vscode.commands.registerCommand('agentNotifier.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();
