@@ -42,6 +42,7 @@ export class TransportFactory {
       {
         transport: config.get<'file' | 'http'>('transport', 'http'),
         httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
+        relayBaseUrl: config.get<string>('relayBaseUrl', ''),
         cursorWebhookSecret: config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET),
         watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
         watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),

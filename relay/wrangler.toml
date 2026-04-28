@@ -1,0 +1,11 @@
+name = "pingly-relay"
+main = "src/index.ts"
+compatibility_date = "2026-04-28"
+
+[[durable_objects.bindings]]
+name = "RELAY_INSTALLS"
+class_name = "RelayInstallDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RelayInstallDurableObject"]

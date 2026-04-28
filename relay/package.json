@@ -1,0 +1,15 @@
+{
+  "name": "pingly-relay",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "test": "echo \"No relay tests wired yet\""
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260404.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.14.0"
+  }
+}

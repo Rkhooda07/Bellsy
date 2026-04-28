@@ -40,6 +40,7 @@ export interface PermissionResponse {
 export interface AgentNotifierConfig {
   transport: 'file' | 'http';
   httpPort: number;
+  relayBaseUrl: string;
   cursorWebhookSecret: string;
   watchFilePath: string;
   watchResponseFilePath: string;

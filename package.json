@@ -85,6 +85,11 @@
           "maximum": 65535,
           "description": "Loopback HTTP port used by the extension."
         },
+        "agentNotifier.relayBaseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Base URL for the hosted Cursor relay, for example https://your-relay.example.workers.dev. When set, Cursor webhook setup uses the hosted relay by default."
+        },
         "agentNotifier.cursorWebhookSecret": {
           "type": "string",
           "default": "",

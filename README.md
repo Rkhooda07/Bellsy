@@ -1,29 +1,28 @@
 # Cursor Agent Notifier
 
-Cursor Agent Notifier is a Cursor-compatible extension focused on one job: **notify you when a Cursor background agent finishes work or needs attention**.
+Cursor Agent Notifier is a Cursor-compatible extension that notifies you when a Cursor background agent finishes work or needs attention.
 
-This release is intentionally narrow. It is built around Cursor's documented background-agent webhook flow, not around unsupported scraping of Cursor's foreground chat UI.
+## Hosted Relay Flow
+
+The default Cursor flow is now hosted relay mode:
+
+1. Install the extension in Cursor.
+2. Configure `agentNotifier.relayBaseUrl` to your deployed relay URL.
+3. Run `Cursor Agent Notifier: Run Self Test`.
+4. Run `Cursor Agent Notifier: Setup Cursor Webhook`.
+5. Copy the hosted webhook URL and webhook secret.
+6. Paste both into Cursor background-agent webhook settings once.
+7. Run `Cursor Agent Notifier: Test Cursor Webhook`.
+
+After that, Cursor sends `FINISHED` and `ERROR` events to the relay, and the relay forwards normalized events to the connected extension.
 
 ## What It Does
 
-- Shows a visible in-editor completion popup when a Cursor background agent finishes
+- Shows an in-editor completion popup when a Cursor background agent finishes
 - Shows a stronger in-editor attention popup when a Cursor background agent errors
 - Sends OS notifications for both states
 - Plays platform-appropriate sounds
-- Keeps a built-in self-test so users can verify notifications immediately
-
-## What It Supports In This Release
-
-- Cursor background-agent `FINISHED` -> completion notification
-- Cursor background-agent `ERROR` -> strong attention notification
-- Explicit local HTTP events if you want to integrate your own scripts or tools
-- File transport for local request/response workflows
-
-## What It Does Not Support
-
-- Automatic detection of normal Cursor Composer/chat replies
-- Automatic detection of Cursor permission prompts from the foreground agent UI
-- Generic interception of arbitrary terminal agents
+- Keeps built-in self-test and hosted webhook test commands
 
 ## Commands
 
@@ -33,55 +32,43 @@ This release is intentionally narrow. It is built around Cursor's documented bac
 - `Cursor Agent Notifier: Show Logs`
 - `Cursor Agent Notifier: Show Pending Requests`
 
-## Quick Start
-
-1. Install the extension in Cursor.
-2. Run `Cursor Agent Notifier: Run Self Test`.
-3. Confirm that you get:
-   - a Cursor popup
-   - a system notification
-   - the correct sound
-4. Run `Cursor Agent Notifier: Setup Cursor Webhook`.
-5. Copy the generated secret.
-6. Run `Cursor Agent Notifier: Test Cursor Webhook` and verify both:
-   - `Finished` -> completion notification
-   - `Error` -> strong attention notification
-7. Expose the local webhook endpoint through any HTTPS tunnel.
-8. Paste the public webhook URL and the copied secret into Cursor background-agent webhook settings.
-
-Tunnel guidance in plain English:
-
-- your extension listens locally on `http://127.0.0.1:9001/cursor/webhook`
-- Cursor sends background-agent webhooks from the cloud
-- so you need a public `https://.../cursor/webhook` address that forwards to your local endpoint
-- `Cursor Agent Notifier: Setup Cursor Webhook` now includes `Copy Tunnel Guide` so users can copy the exact setup reminder
-
-Local endpoint used by the extension:
-
-```text
-http://127.0.0.1:9001/cursor/webhook
-```
-
-Important:
-
-- Cursor background-agent webhooks come from Cursor's cloud, so they cannot call `127.0.0.1` directly.
-- You must point Cursor at a public HTTPS URL that forwards to your local `/cursor/webhook` endpoint.
-- The built-in webhook test verifies the local Cursor webhook route before you connect a real background agent.
-
 ## Cursor Mapping
 
 - `FINISHED` -> `task_completed`
 - `ERROR` -> `attention_required`
 
-This is the clean, documented Cursor integration path. Cursor's current webhook API does not send interactive Allow/Deny permission requests.
+Only Cursor background-agent status webhooks are handled in relay mode. Foreground Composer/chat events and permission-request flows are intentionally out of scope.
+
+## Relay Deployment
+
+The hosted relay lives in [relay](./relay) and targets Cloudflare Workers plus Durable Objects.
+
+Expected endpoints:
+
+- `POST /v1/installs/register`
+- `POST /v1/installs/restore`
+- `GET /v1/connect/:installId`
+- `POST /v1/webhooks/cursor/:installId`
+- `POST /v1/installs/:installId/rotate-secret`
+
+Before packaging the extension for real use, deploy the Worker and set:
+
+```json
+"agentNotifier.relayBaseUrl": "https://your-relay.example.workers.dev"
+```
+
+The extension stores relay install credentials in `globalState`, not in user settings.
 
 ## Settings
 
+- `agentNotifier.relayBaseUrl`
+  Base URL for the hosted relay. When set, hosted relay mode becomes the default Cursor setup path.
+
 - `agentNotifier.httpPort`
-  The local loopback port used by the extension.
+  Local loopback port used by the retained HTTP transport.
 
 - `agentNotifier.cursorWebhookSecret`
-  The HMAC secret used to verify Cursor background-agent webhooks. Use the same secret in Cursor.
+  Optional local-only HMAC secret for direct `/cursor/webhook` fallback testing.
 
 - `agentNotifier.soundEnabled`
   Enables notification sounds.
@@ -89,7 +76,7 @@ This is the clean, documented Cursor integration path. Cursor's current webhook 
 - `agentNotifier.soundVolume`
   Preferred playback volume where supported.
 
-## Explicit HTTP Events
+## Explicit Local HTTP Events
 
 The extension still supports direct local HTTP events at:
 
@@ -113,7 +100,7 @@ curl -X POST http://127.0.0.1:9001/event \
   -d '{"type":"attention_required","message":"Custom tool needs attention"}'
 ```
 
-Permission example for custom local workflows:
+Permission example for local workflows:
 
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
@@ -136,11 +123,10 @@ Defaults:
 
 ## Troubleshooting
 
-- If the extension does not activate, run `Cursor Agent Notifier: Show Logs`.
-- If `Cursor Agent Notifier: Test Cursor Webhook` works but real Cursor background-agent notifications do not arrive, the webhook URL is not reaching your local machine yet.
-- If port `9001` is already in use, change `agentNotifier.httpPort`.
-- If notifications do not appear, check Cursor notification permissions in your OS.
+- If activation succeeds but relay setup is unavailable, check `agentNotifier.relayBaseUrl` and `Cursor Agent Notifier: Show Logs`.
+- If the hosted webhook test is accepted but no notification appears, the extension is not currently connected to the relay.
+- If local HTTP events do not work, check whether port `9001` is already in use.
 
 ## Release Status
 
-This is a **preview** release focused on Cursor background-agent notifications.
+This is still a preview release focused on Cursor background-agent notifications.

@@ -4,12 +4,21 @@ import * as vscode from 'vscode';
 import { v4 as uuid } from 'uuid';
 
 import { CURSOR_WEBHOOK_PATH, DEFAULT_CURSOR_WEBHOOK_SECRET, DEFAULT_HTTP_HOST, DEFAULT_HTTP_PORT } from '../core/constants';
+import { HostedRelayService } from '../relay/HostedRelayService';
 import { OutputChannelLogger } from './OutputChannelLogger';
 
 export class CursorSetupService {
-  constructor(private readonly logger: OutputChannelLogger) {}
+  constructor(
+    private readonly logger: OutputChannelLogger,
+    private readonly relayService: HostedRelayService,
+  ) {}
 
   async run(): Promise<void> {
+    if (this.relayService.isConfigured()) {
+      await this.runHostedRelaySetup();
+      return;
+    }
+
     const config = vscode.workspace.getConfiguration('agentNotifier');
     const port = config.get<number>('httpPort', DEFAULT_HTTP_PORT);
     const localWebhookUrl = `http://127.0.0.1:${port}${CURSOR_WEBHOOK_PATH}`;
@@ -88,6 +97,11 @@ export class CursorSetupService {
   }
 
   async testWebhook(): Promise<void> {
+    if (this.relayService.isConfigured()) {
+      await this.testHostedRelayWebhook();
+      return;
+    }
+
     const config = vscode.workspace.getConfiguration('agentNotifier');
     const port = config.get<number>('httpPort', DEFAULT_HTTP_PORT);
     const secret = config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET).trim();
@@ -153,6 +167,118 @@ export class CursorSetupService {
     await vscode.window.showErrorMessage(
       `Cursor webhook test failed with ${response.statusCode}: ${response.body || 'unknown error'}`,
     );
+  }
+
+  private async runHostedRelaySetup(): Promise<void> {
+    await this.relayService.start();
+    const credentials = this.relayService.getCredentials();
+
+    if (!credentials) {
+      const action = await vscode.window.showErrorMessage(
+        'Hosted relay is configured, but this install is not registered yet. Check logs or retry after the relay becomes reachable.',
+        'Show Logs',
+      );
+
+      if (action === 'Show Logs') {
+        this.logger.show();
+      }
+
+      return;
+    }
+
+    const status = this.relayService.getStatus();
+    const action = await vscode.window.showQuickPick(
+      [
+        { label: 'Copy Webhook URL', detail: credentials.publicWebhookUrl },
+        { label: 'Copy Webhook Secret', detail: credentials.cursorWebhookSecret },
+        { label: 'Copy Cursor Setup Checklist', detail: 'Copies the full one-time Cursor setup steps.' },
+        { label: 'Rotate Secret', detail: 'Generates a new Cursor webhook secret and updates this install.' },
+        { label: 'Test Cursor Webhook', detail: 'Sends a hosted FINISHED or ERROR test through the relay.' },
+      ],
+      {
+        title: 'Cursor Agent Notifier: Setup Cursor Webhook',
+        placeHolder: `Connection status: ${status}`,
+        canPickMany: false,
+      },
+    );
+
+    if (!action) {
+      return;
+    }
+
+    if (action.label === 'Copy Webhook URL') {
+      await vscode.env.clipboard.writeText(credentials.publicWebhookUrl);
+      await vscode.window.showInformationMessage('Hosted Cursor webhook URL copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Webhook Secret') {
+      await vscode.env.clipboard.writeText(credentials.cursorWebhookSecret);
+      await vscode.window.showInformationMessage('Hosted Cursor webhook secret copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Cursor Setup Checklist') {
+      const checklist = [
+        '1. Open Cursor background-agent webhook settings.',
+        `2. Paste this webhook URL: ${credentials.publicWebhookUrl}`,
+        `3. Paste this webhook secret: ${credentials.cursorWebhookSecret}`,
+        '4. Save the Cursor webhook settings once.',
+        '5. FINISHED triggers completion notifications.',
+        '6. ERROR triggers a strong attention notification.',
+        `7. Current relay connection status: ${status}`,
+      ].join('\n');
+
+      await vscode.env.clipboard.writeText(checklist);
+      await vscode.window.showInformationMessage('Cursor setup checklist copied.');
+      return;
+    }
+
+    if (action.label === 'Rotate Secret') {
+      const updated = await this.relayService.rotateSecret();
+      await vscode.env.clipboard.writeText(updated.cursorWebhookSecret);
+      await vscode.window.showInformationMessage('Cursor webhook secret rotated and copied.');
+      return;
+    }
+
+    if (action.label === 'Test Cursor Webhook') {
+      await this.testHostedRelayWebhook();
+    }
+  }
+
+  private async testHostedRelayWebhook(): Promise<void> {
+    await this.relayService.start();
+    const scenario = await vscode.window.showQuickPick(
+      [
+        {
+          label: 'Finished',
+          description: 'Test the normal completion popup, notification, and sound',
+          status: 'FINISHED' as const,
+        },
+        {
+          label: 'Error',
+          description: 'Test the stronger attention popup, notification, and sound',
+          status: 'ERROR' as const,
+        },
+      ],
+      {
+        placeHolder: 'Choose a Cursor webhook scenario to send through the hosted relay',
+        canPickMany: false,
+      },
+    );
+
+    if (!scenario) {
+      return;
+    }
+
+    try {
+      await this.relayService.sendTestWebhook(scenario.status);
+      await vscode.window.showInformationMessage(`Cursor webhook ${scenario.label.toLowerCase()} test sent.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Hosted relay webhook test failed: ${message}`);
+      await vscode.window.showErrorMessage(`Hosted relay webhook test failed: ${message}`);
+    }
   }
 }
 

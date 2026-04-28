@@ -20,6 +20,7 @@ import { OutputChannelLogger } from './services/OutputChannelLogger';
 import { PermissionManager } from './services/PermissionManager';
 import { IResponseTarget, ResponseDispatcher } from './services/ResponseDispatcher';
 import { CursorSetupService } from './services/CursorSetupService';
+import { HostedRelayService } from './relay/HostedRelayService';
 import { SoundService } from './services/SoundService';
 import { StatusBarService } from './services/StatusBarService';
 import { SystemNotifService } from './services/SystemNotifService';
@@ -33,7 +34,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const statusBarService = new StatusBarService();
   const dispatcher = new ResponseDispatcher();
   const eventRouter = new EventRouter();
-  const cursorSetupService = new CursorSetupService(logger);
+  const relayBaseUrl = config.get<string>('relayBaseUrl', '').trim();
+  const relayService = new HostedRelayService(context, logger, relayBaseUrl);
+  const cursorSetupService = new CursorSetupService(logger, relayService);
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
@@ -61,6 +64,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     {
       transport: config.get<'file' | 'http'>('transport', 'http'),
       httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
+      relayBaseUrl,
       cursorWebhookSecret: config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET),
       watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
       watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),
@@ -107,6 +111,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     EventBus.emit(event.type, event);
   });
 
+  relayService.onEventReceived((event) => {
+    logger.info(`Relay event received: ${event.type} (${event.id})`);
+    if (!eventRouter.shouldRoute(event)) {
+      logger.warn(`Relay event dropped by router as duplicate or burst: ${event.type} (${event.id})`);
+      return;
+    }
+
+    EventBus.emit(event.type, event);
+  });
+
+  relayService.onStatusDidChange((status) => {
+    logger.info(`Relay status: ${status}`);
+  });
+
   try {
     await transport.start();
   } catch (error) {
@@ -117,8 +135,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     throw error;
   }
 
+  void relayService.start();
+
   context.subscriptions.push(
     logger,
+    relayService,
     statusBarService,
     vscode.commands.registerCommand('agentNotifier.showLogs', () => {
       logger.show();
