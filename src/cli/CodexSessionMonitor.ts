@@ -203,17 +203,17 @@ export function parseCodexSessionLine(
     priority: AgentEventPriority.LOW,
     confidence: 'high',
     correlationId: turnId ? `codex-turn:${turnId}` : undefined,
-    message: buildCompletionMessage(agent, lastAgentMessage),
+    message: buildCompletionMessage(lastAgentMessage),
   };
 }
 
-function buildCompletionMessage(agent: string, lastAgentMessage?: string): string {
+function buildCompletionMessage(lastAgentMessage?: string): string {
   const summary = summarizeAgentMessage(lastAgentMessage);
   if (!summary) {
-    return `${agent}: Response completed`;
+    return 'Response completed';
   }
 
-  return `${agent}: ${summary}`;
+  return summary;
 }
 
 function summarizeAgentMessage(message?: string): string | null {

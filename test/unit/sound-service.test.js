@@ -6,29 +6,35 @@ const path = require('node:path');
 
 const { SoundService } = require('../../out/services/SoundService');
 
-test('macOS permission sound uses Ping.aiff', () => {
+test('macOS permission sound prefers the bundled wav file', () => {
   const originalPlatform = os.platform;
   os.platform = () => 'darwin';
 
   try {
-    const service = new SoundService('/tmp/sounds', true, 45);
-    const command = service.buildCommand('/tmp/sounds/permission_alert.wav', '/System/Library/Sounds/Ping.aiff');
+    const soundPath = path.resolve(__dirname, '../../sounds/permission_alert.wav');
+    assert.equal(fs.existsSync(soundPath), true);
 
-    assert.equal(command, 'afplay -v 45 "/System/Library/Sounds/Ping.aiff"');
+    const service = new SoundService('/tmp/sounds', true, 45);
+    const command = service.buildCommand(soundPath, '/System/Library/Sounds/Ping.aiff');
+
+    assert.equal(command, `afplay -v 45 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }
 });
 
-test('macOS completion sound uses Glass.aiff', () => {
+test('macOS completion sound prefers the bundled wav file', () => {
   const originalPlatform = os.platform;
   os.platform = () => 'darwin';
 
   try {
-    const service = new SoundService('/tmp/sounds', true, 45);
-    const command = service.buildCommand('/tmp/sounds/task_complete.wav', '/System/Library/Sounds/Glass.aiff');
+    const soundPath = path.resolve(__dirname, '../../sounds/task_complete.wav');
+    assert.equal(fs.existsSync(soundPath), true);
 
-    assert.equal(command, 'afplay -v 45 "/System/Library/Sounds/Glass.aiff"');
+    const service = new SoundService('/tmp/sounds', true, 45);
+    const command = service.buildCommand(soundPath, '/System/Library/Sounds/Glass.aiff');
+
+    assert.equal(command, `afplay -v 45 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }

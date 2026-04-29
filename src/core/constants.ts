@@ -11,6 +11,6 @@ export const DEFAULT_PERMISSION_REMINDER_ENABLED = true;
 export const DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS = 30;
 export const DEFAULT_CURSOR_WEBHOOK_SECRET = '';
 export const SOUND_FILES = {
-  permission: 'permission.wav',
-  completed: 'completion.wav',
+  permission: ['permission.wav'],
+  completed: ['completion.wav'],
 } as const;

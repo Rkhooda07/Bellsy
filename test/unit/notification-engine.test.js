@@ -141,3 +141,20 @@ test('attention notifications use the stronger popup and sound path', () => {
     ['sound-permission'],
   ]);
 });
+
+test('agent name is not prefixed twice when the message already includes it', () => {
+  const { calls, engine } = createHarness(true);
+
+  engine.showTaskCompleted(
+    createEvent({
+      agent: 'codex',
+      message: 'codex: Finished the turn',
+    }),
+  );
+
+  assert.deepEqual(calls, [
+    ['popup-complete', 'codex: Finished the turn'],
+    ['system-complete', 'codex: Finished the turn', true],
+    ['sound-complete'],
+  ]);
+});

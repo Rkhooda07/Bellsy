@@ -15,7 +15,7 @@ export class NotificationService {
   }
 
   showTaskCompleted(message: string): Thenable<string | undefined> {
-    return vscode.window.showWarningMessage(
+    return vscode.window.showInformationMessage(
       `Pingly: Task Completed\n${message}`,
       {
         modal: false,

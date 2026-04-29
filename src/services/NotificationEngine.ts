@@ -92,7 +92,15 @@ export class NotificationEngine {
   }
 
   private formatMessage(event: AgentEvent): string {
-    const agent = event.agent ? `${event.agent}: ` : '';
-    return `${agent}${event.message}`;
+    if (!event.agent) {
+      return event.message;
+    }
+
+    const normalizedPrefix = `${event.agent}:`;
+    if (event.message.toLowerCase().startsWith(normalizedPrefix.toLowerCase())) {
+      return event.message;
+    }
+
+    return `${event.agent}: ${event.message}`;
   }
 }

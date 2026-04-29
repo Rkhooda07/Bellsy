@@ -9,6 +9,7 @@ const MACOS_SYSTEM_SOUNDS = {
   permission: '/System/Library/Sounds/Ping.aiff',
   completed: '/System/Library/Sounds/Glass.aiff',
 } as const;
+const MACOS_NOTIFICATION_SYNC_DELAY_MS = 120;
 
 export class SoundService {
   constructor(
@@ -25,36 +26,61 @@ export class SoundService {
     this.play(SOUND_FILES.completed, MACOS_SYSTEM_SOUNDS.completed);
   }
 
-  private play(filename: string, macosSystemSoundPath: string): void {
+  private play(filenames: readonly string[], macosSystemSoundPath: string): void {
     if (!this.soundEnabled) {
       return;
     }
 
-    const fullPath = path.join(this.soundsPath, filename);
+    const fullPath = this.resolveSoundPath(filenames);
     const command = this.buildCommand(fullPath, macosSystemSoundPath);
     if (!command) {
       return;
     }
 
-    exec(command, (error) => {
-      if (error) {
-        console.error(`[SoundService] Failed to play ${filename}: ${error.message}`);
-      }
-    });
+    const runPlayback = (): void => {
+      exec(command, (error) => {
+        if (error) {
+          console.error(`[SoundService] Failed to play ${filenames[0]}: ${error.message}`);
+        }
+      });
+    };
+
+    if (os.platform() === 'darwin') {
+      setTimeout(runPlayback, MACOS_NOTIFICATION_SYNC_DELAY_MS);
+      return;
+    }
+
+    runPlayback();
   }
 
-  private buildCommand(filePath: string, macosSystemSoundPath: string): string | null {
+  private resolveSoundPath(filenames: readonly string[]): string | undefined {
+    for (const filename of filenames) {
+      const fullPath = path.join(this.soundsPath, filename);
+      if (fs.existsSync(fullPath)) {
+        return fullPath;
+      }
+    }
+
+    const [fallback] = filenames;
+    return fallback ? path.join(this.soundsPath, fallback) : undefined;
+  }
+
+  buildCommand(filePath: string | undefined, macosSystemSoundPath: string): string | null {
     switch (os.platform()) {
       case 'darwin':
+        if (filePath && fs.existsSync(filePath)) {
+          return `afplay -v ${this.normalizedVolume} "${filePath}"`;
+        }
+
         return `afplay -v ${this.normalizedVolume} "${macosSystemSoundPath}"`;
       case 'win32':
-        if (!fs.existsSync(filePath)) {
+        if (!filePath || !fs.existsSync(filePath)) {
           return null;
         }
 
         return `powershell -NoProfile -Command "(New-Object Media.SoundPlayer '${filePath.replace(/'/g, "''")}').PlaySync();"`;
       case 'linux':
-        if (!fs.existsSync(filePath)) {
+        if (!filePath || !fs.existsSync(filePath)) {
           return null;
         }
 

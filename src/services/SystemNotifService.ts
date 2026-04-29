@@ -65,14 +65,7 @@ export class SystemNotifService {
   }
 
   private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
-    const args = [
-      '-title',
-      title,
-      '-message',
-      message,
-      '-sender',
-      this.detectMacSenderBundleId(),
-    ];
+    const args = ['-title', title, '-message', message, '-sender', this.detectMacSenderBundleId()];
 
     if (critical) {
       args.push('-timeout', '30');
