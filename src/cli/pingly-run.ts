@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 import { spawn } from 'child_process';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import { randomUUID } from 'crypto';
 
 import { AgentEventPriority, AgentEventSource, AgentEventType } from '../core/types';
@@ -11,21 +14,50 @@ type CliOptions = {
   endpoint: string;
   allowInput: string;
   denyInput: string;
+  ttyMode: 'auto' | 'on' | 'off';
   command: string;
   args: string[];
 };
+
+type SpawnPlan =
+  | {
+      kind: 'pipe';
+      command: string;
+      args: string[];
+    }
+  | {
+      kind: 'tty-log';
+      command: string;
+      args: string[];
+      logFilePath: string;
+    };
 
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:9001/event';
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const detector = new PatternDetector({ agent: options.agent });
-  const child = spawn(options.command, options.args, {
+  const plan = buildSpawnPlan(options);
+  const runId = randomUUID();
+
+  if (plan.kind === 'tty-log') {
+    await runWithTerminalCapture(plan, detector, options, runId);
+    return;
+  }
+
+  await runWithPipes(plan, detector, options, runId);
+}
+
+async function runWithPipes(
+  plan: Extract<SpawnPlan, { kind: 'pipe' }>,
+  detector: PatternDetector,
+  options: CliOptions,
+  runId: string,
+): Promise<void> {
+  const child = spawn(plan.command, plan.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: process.env,
   });
-
-  const runId = randomUUID();
 
   child.stdout.on('data', (chunk: Buffer) => {
     process.stdout.write(chunk);
@@ -38,7 +70,7 @@ async function main(): Promise<void> {
   });
 
   child.on('error', (error) => {
-    console.error(`[pingly-run] Failed to start ${options.command}: ${error.message}`);
+    console.error(`[pingly-run] Failed to start ${plan.command}: ${error.message}`);
     process.exitCode = 1;
   });
 
@@ -49,11 +81,49 @@ async function main(): Promise<void> {
   });
 }
 
+async function runWithTerminalCapture(
+  plan: Extract<SpawnPlan, { kind: 'tty-log' }>,
+  detector: PatternDetector,
+  options: CliOptions,
+  runId: string,
+): Promise<void> {
+  await fs.writeFile(plan.logFilePath, '');
+
+  const child = spawn(plan.command, plan.args, {
+    stdio: 'inherit',
+    env: process.env,
+  });
+
+  const poller = startLogPolling(plan.logFilePath, async (chunk) => {
+    const events = detector.ingest(chunk);
+    await handleDetectedEvents(events, options, runId);
+  });
+
+  child.on('error', async (error) => {
+    await poller.stop();
+    await fs.rm(plan.logFilePath, { force: true });
+    console.error(`[pingly-run] Failed to start ${plan.command}: ${error.message}`);
+    process.exitCode = 1;
+  });
+
+  child.on('exit', (code) => {
+    void poller
+      .flush()
+      .then(() => handleDetectedEvents(detector.onExit(code), options, runId))
+      .finally(async () => {
+        await poller.stop();
+        await fs.rm(plan.logFilePath, { force: true });
+        process.exit(code ?? 1);
+      });
+  });
+}
+
 function parseArgs(args: string[]): CliOptions {
   let agent = process.env.PINGLY_AGENT ?? 'unknown';
   let endpoint = process.env.PINGLY_URL ?? DEFAULT_ENDPOINT;
   let allowInput = process.env.PINGLY_ALLOW_INPUT ?? 'y\n';
   let denyInput = process.env.PINGLY_DENY_INPUT ?? 'n\n';
+  let ttyMode = (process.env.PINGLY_TTY_MODE as CliOptions['ttyMode'] | undefined) ?? 'auto';
   const commandSeparatorIndex = args.indexOf('--');
 
   if (commandSeparatorIndex === -1) {
@@ -89,6 +159,16 @@ function parseArgs(args: string[]): CliOptions {
       continue;
     }
 
+    if (arg === '--tty' && value) {
+      if (value !== 'auto' && value !== 'on' && value !== 'off') {
+        printUsageAndExit();
+      }
+
+      ttyMode = value;
+      index += 1;
+      continue;
+    }
+
     printUsageAndExit();
   }
 
@@ -103,20 +183,64 @@ function parseArgs(args: string[]): CliOptions {
     endpoint,
     allowInput,
     denyInput,
+    ttyMode,
     command,
     args: commandParts.slice(1),
   };
+}
+
+function buildSpawnPlan(options: CliOptions): SpawnPlan {
+  if (!shouldWrapInTerminal(options)) {
+    return {
+      kind: 'pipe',
+      command: options.command,
+      args: options.args,
+    };
+  }
+
+  if (os.platform() === 'darwin' || os.platform() === 'linux') {
+    const logFilePath = path.join(os.tmpdir(), `pingly-run-${Date.now()}-${Math.random().toString(16).slice(2)}.log`);
+    return {
+      kind: 'tty-log',
+      command: 'script',
+      args: ['-q', logFilePath, options.command, ...options.args],
+      logFilePath,
+    };
+  }
+
+  return {
+    kind: 'pipe',
+    command: options.command,
+    args: options.args,
+  };
+}
+
+function shouldWrapInTerminal(options: CliOptions): boolean {
+  if (options.ttyMode === 'off') {
+    return false;
+  }
+
+  if (options.ttyMode === 'on') {
+    return true;
+  }
+
+  return /^(codex|claude|claude-code)$/i.test(options.command) || /^(codex|claude|claude-code)$/i.test(options.agent);
 }
 
 async function handleDetectedEvents(
   events: DetectedCliEvent[],
   options: CliOptions,
   runId: string,
-  stdin: NodeJS.WritableStream,
+  stdin?: NodeJS.WritableStream,
 ): Promise<void> {
   for (const event of events) {
     const response = await postEvent(event, options, runId);
-    if (event.type === AgentEventType.PERMISSION_REQUIRED && response && typeof response.allowed === 'boolean') {
+    if (
+      stdin &&
+      event.type === AgentEventType.PERMISSION_REQUIRED &&
+      response &&
+      typeof response.allowed === 'boolean'
+    ) {
       stdin.write(response.allowed ? options.allowInput : options.denyInput);
     }
   }
@@ -145,7 +269,7 @@ async function postEvent(
       },
     }),
   }).catch((error: Error) => {
-    console.error(`[pingly-run] Failed to notify AI Agent Notifier: ${error.message}`);
+    console.error(`[pingly-run] Failed to notify Pingly: ${error.message}`);
     return null;
   });
 
@@ -167,9 +291,64 @@ function decodeInput(value: string): string {
 
 function printUsageAndExit(): never {
   console.error(
-    'Usage: pingly-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] -- <command> [...args]',
+    'Usage: pingly-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] [--tty auto|on|off] -- <command> [...args]',
   );
   process.exit(1);
+}
+
+function startLogPolling(filePath: string, onChunk: (chunk: string) => Promise<void> | void): {
+  flush: () => Promise<void>;
+  stop: () => Promise<void>;
+} {
+  let offset = 0;
+  let stopped = false;
+  let activeRead: Promise<void> = Promise.resolve();
+
+  const readNewData = async (): Promise<void> => {
+    try {
+      const stats = await fs.stat(filePath);
+      if (stats.size <= offset) {
+        return;
+      }
+
+      const handle = await fs.open(filePath, 'r');
+      try {
+        const length = stats.size - offset;
+        const buffer = Buffer.alloc(length);
+        await handle.read(buffer, 0, length, offset);
+        offset = stats.size;
+        const chunk = buffer.toString('utf8');
+        if (chunk.length > 0) {
+          await onChunk(chunk);
+        }
+      } finally {
+        await handle.close();
+      }
+    } catch (error) {
+      if (!stopped) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[pingly-run] Failed to read terminal log: ${message}`);
+      }
+    }
+  };
+
+  const tick = (): void => {
+    activeRead = activeRead.then(() => readNewData());
+  };
+
+  const timer = setInterval(tick, 150);
+
+  return {
+    flush: async () => {
+      tick();
+      await activeRead;
+    },
+    stop: async () => {
+      stopped = true;
+      clearInterval(timer);
+      await activeRead;
+    },
+  };
 }
 
 void main();
