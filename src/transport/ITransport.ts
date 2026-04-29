@@ -4,4 +4,5 @@ export interface ITransport {
   start(): Promise<void>;
   stop(): Promise<void>;
   onEvent(callback: (event: AgentEvent) => void): void;
+  getEventEndpoint?(): string | undefined;
 }

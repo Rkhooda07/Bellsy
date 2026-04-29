@@ -7,6 +7,7 @@ export class StatusBarService implements vscode.Disposable {
   private pendingEvents: AgentEvent[] = [];
   private pulseVisible = true;
   private pulseTimer: NodeJS.Timeout | null = null;
+  private listeningEndpoint?: string;
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
@@ -53,7 +54,16 @@ export class StatusBarService implements vscode.Disposable {
     this.item.text = '$(check) Pingly Ready';
     this.item.color = undefined;
     this.item.backgroundColor = undefined;
-    this.item.tooltip = 'Pingly is listening for local agent events';
+    this.item.tooltip = this.listeningEndpoint
+      ? `Pingly is listening for local agent events on ${this.listeningEndpoint}`
+      : 'Pingly is listening for local agent events';
+  }
+
+  setListeningEndpoint(endpoint: string | undefined): void {
+    this.listeningEndpoint = endpoint;
+    if (this.pendingEvents.length === 0) {
+      this.setIdle();
+    }
   }
 
   private startPulse(): void {

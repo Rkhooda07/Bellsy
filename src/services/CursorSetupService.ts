@@ -16,6 +16,7 @@ export class CursorSetupService {
   constructor(
     private readonly logger: OutputChannelLogger,
     private readonly relayService: HostedRelayService,
+    private readonly getLocalEndpoint: () => string | undefined,
     private readonly emitLocalEvent: (event: {
       type: AgentEventType;
       message: string;
@@ -28,12 +29,13 @@ export class CursorSetupService {
   ) {}
 
   async run(): Promise<void> {
-    const endpoint = 'http://127.0.0.1:9001/event';
+    const endpoint = this.getLocalEndpoint() ?? 'http://127.0.0.1:9001/event';
+    const endpointFlag = endpoint === 'http://127.0.0.1:9001/event' ? '' : ` --endpoint ${endpoint}`;
     const action = await vscode.window.showQuickPick(
       [
-        { label: 'Copy Claude Code Wrapper', detail: 'Start Claude Code through pingly-run.' },
-        { label: 'Copy Codex Wrapper', detail: 'Start Codex CLI through pingly-run.' },
-        { label: 'Copy Generic Wrapper', detail: 'Wrap any local command with pingly-run.' },
+        { label: 'Copy Claude Code Wrapper', detail: `Start Claude Code through pingly-run (${endpoint}).` },
+        { label: 'Copy Codex Wrapper', detail: `Start Codex CLI through pingly-run (${endpoint}).` },
+        { label: 'Copy Generic Wrapper', detail: `Wrap any local command with pingly-run (${endpoint}).` },
         { label: 'Copy Direct Event Curl', detail: 'Send a completion or error event from any script.' },
         { label: 'Copy Setup Checklist', detail: 'Quick-start steps for local notifications.' },
         { label: 'Show Experimental Cursor Relay Setup', detail: 'Copy hosted webhook values if you still want the secondary relay path.' },
@@ -50,19 +52,19 @@ export class CursorSetupService {
     }
 
     if (action.label === 'Copy Claude Code Wrapper') {
-      await vscode.env.clipboard.writeText('pingly-run --agent claude-code -- claude');
+      await vscode.env.clipboard.writeText(`pingly-run --agent claude-code${endpointFlag} -- claude`);
       await vscode.window.showInformationMessage('Claude Code wrapper command copied.');
       return;
     }
 
     if (action.label === 'Copy Codex Wrapper') {
-      await vscode.env.clipboard.writeText('pingly-run --agent codex -- codex');
+      await vscode.env.clipboard.writeText(`pingly-run --agent codex${endpointFlag} -- codex`);
       await vscode.window.showInformationMessage('Codex wrapper command copied.');
       return;
     }
 
     if (action.label === 'Copy Generic Wrapper') {
-      await vscode.env.clipboard.writeText('pingly-run --agent my-tool -- your-command-here');
+      await vscode.env.clipboard.writeText(`pingly-run --agent my-tool${endpointFlag} -- your-command-here`);
       await vscode.window.showInformationMessage('Generic wrapper command copied.');
       return;
     }
@@ -82,8 +84,8 @@ export class CursorSetupService {
     if (action.label === 'Copy Setup Checklist') {
       const checklist = [
         '1. Install the extension and run Pingly: Run Self Test.',
-        '2. Start your local tool through a wrapper like: pingly-run --agent claude-code -- claude',
-        '3. Keep the extension open in Cursor while the tool runs.',
+        `2. Start your local tool through a wrapper like: pingly-run --agent claude-code${endpointFlag} -- claude`,
+        '3. Keep the extension open in your editor while the tool runs.',
         '4. Use Pingly: Test Local Notifications to verify completion, error, and approval flows.',
         `5. Advanced scripts can post JSON directly to ${endpoint}.`,
         '6. Native Claude Code or Codex hooks are optional; the wrapper path is the lowest-fuss default.',

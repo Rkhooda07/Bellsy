@@ -37,14 +37,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const relayBaseUrl = config.get<string>('relayBaseUrl', '').trim();
   const experimentalHostedRelayEnabled = config.get<boolean>('experimentalHostedRelayEnabled', false);
   const relayService = new HostedRelayService(context, logger, relayBaseUrl);
-  const cursorSetupService = new CursorSetupService(logger, relayService, (event) => {
-    EventBus.emit(event.type, {
-      id: `${event.correlationId ?? event.type}:${Date.now()}`,
-      timestamp: Date.now(),
-      metadata: {},
-      ...event,
-    });
-  });
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
@@ -89,6 +81,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       ),
     },
     logger,
+  );
+  const cursorSetupService = new CursorSetupService(
+    logger,
+    relayService,
+    () => transport.getEventEndpoint?.(),
+    (event) => {
+      EventBus.emit(event.type, {
+        id: `${event.correlationId ?? event.type}:${Date.now()}`,
+        timestamp: Date.now(),
+        metadata: {},
+        ...event,
+      });
+    },
   );
 
   if (transport instanceof HttpTransport || 'send' in transport) {
@@ -135,6 +140,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   try {
     await transport.start();
+    statusBarService.setListeningEndpoint(transport.getEventEndpoint?.());
+    const activeEndpoint = transport.getEventEndpoint?.();
+    if (activeEndpoint) {
+      logger.info(`Local endpoint ready at ${activeEndpoint}`);
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(`Activation failed while starting transport: ${message}`);

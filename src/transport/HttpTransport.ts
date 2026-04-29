@@ -19,6 +19,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
   private server?: http.Server;
   private callback?: (event: AgentEvent) => void;
   private readonly pendingRequests = new Map<string, PendingRequest>();
+  private activePort?: number;
 
   constructor(
     private readonly port: number,
@@ -28,21 +29,13 @@ export class HttpTransport implements ITransport, IResponseTarget {
   ) {}
 
   async start(): Promise<void> {
-    this.server = http.createServer((req, res) => {
-      void this.handleRequest(req, res);
-    });
+    this.server = await this.createListeningServer(this.port);
 
-    await new Promise<void>((resolve, reject) => {
-      this.server?.once('error', (error) => {
-        this.logger.error(`HTTP transport failed to start: ${error instanceof Error ? error.message : String(error)}`);
-        reject(error);
-      });
-      this.server?.listen(this.port, DEFAULT_HTTP_HOST, () => resolve());
-    });
-
-    this.logger.info(`HTTP transport listening on http://${DEFAULT_HTTP_HOST}:${this.port}/event`);
+    const address = this.server.address();
+    this.activePort = typeof address === 'object' && address ? address.port : this.port;
+    this.logger.info(`HTTP transport listening on http://${DEFAULT_HTTP_HOST}:${this.activePort}/event`);
     this.logger.info(
-      `Experimental Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.port}${CURSOR_WEBHOOK_PATH}`,
+      `Experimental Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.activePort}${CURSOR_WEBHOOK_PATH}`,
     );
   }
 
@@ -73,6 +66,15 @@ export class HttpTransport implements ITransport, IResponseTarget {
     });
 
     this.server = undefined;
+    this.activePort = undefined;
+  }
+
+  getEventEndpoint(): string | undefined {
+    if (!this.activePort) {
+      return undefined;
+    }
+
+    return `http://${DEFAULT_HTTP_HOST}:${this.activePort}/event`;
   }
 
   async send(response: PermissionResponse): Promise<void> {
@@ -224,5 +226,38 @@ export class HttpTransport implements ITransport, IResponseTarget {
     }
 
     return header;
+  }
+
+  private async createListeningServer(preferredPort: number): Promise<http.Server> {
+    try {
+      return await this.listenOnPort(preferredPort);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: unknown }).code) : '';
+      if (code !== 'EADDRINUSE') {
+        this.logger.error(`HTTP transport failed to start: ${message}`);
+        throw error;
+      }
+
+      this.logger.warn(
+        `HTTP port ${preferredPort} is already in use. Pingly will use another available local port for this editor instance.`,
+      );
+      return this.listenOnPort(0);
+    }
+  }
+
+  private async listenOnPort(port: number): Promise<http.Server> {
+    const server = http.createServer((req, res) => {
+      void this.handleRequest(req, res);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', (error) => {
+        reject(error);
+      });
+      server.listen(port, DEFAULT_HTTP_HOST, () => resolve());
+    });
+
+    return server;
   }
 }

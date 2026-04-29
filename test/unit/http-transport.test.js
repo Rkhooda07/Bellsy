@@ -149,3 +149,46 @@ test('http transport rejects cursor webhook with invalid signature', async () =>
 
   assert.equal(res.statusCode, 401);
 });
+
+test('http transport falls back to an open port when the configured one is already in use', async () => {
+  const warnings = [];
+  const logger = {
+    info() {},
+    warn(message) {
+      warnings.push(message);
+    },
+    error() {},
+  };
+  const transport = new HttpTransport(9001, 500, logger);
+  const expectedServer = {
+    address() {
+      return { port: 9102 };
+    },
+    close(callback) {
+      callback();
+    },
+  };
+  const calls = [];
+
+  transport.listenOnPort = async (port) => {
+    calls.push(port);
+    if (port === 9001) {
+      const error = new Error('listen EADDRINUSE: address already in use 127.0.0.1:9001');
+      error.code = 'EADDRINUSE';
+      throw error;
+    }
+
+    return expectedServer;
+  };
+
+  await transport.start();
+
+  try {
+    assert.deepEqual(calls, [9001, 0]);
+    assert.equal(transport.getEventEndpoint(), 'http://127.0.0.1:9102/event');
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /already in use/i);
+  } finally {
+    await transport.stop();
+  }
+});
