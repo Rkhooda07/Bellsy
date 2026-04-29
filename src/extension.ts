@@ -35,6 +35,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const dispatcher = new ResponseDispatcher();
   const eventRouter = new EventRouter();
   const relayBaseUrl = config.get<string>('relayBaseUrl', '').trim();
+  const experimentalHostedRelayEnabled = config.get<boolean>('experimentalHostedRelayEnabled', false);
   const relayService = new HostedRelayService(context, logger, relayBaseUrl);
   const cursorSetupService = new CursorSetupService(logger, relayService, (event) => {
     EventBus.emit(event.type, {
@@ -142,7 +143,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     throw error;
   }
 
-  void relayService.start();
+  if (experimentalHostedRelayEnabled && relayBaseUrl) {
+    void relayService.start();
+  } else if (relayBaseUrl) {
+    logger.info('Experimental hosted relay is configured but disabled. Local notifications remain active.');
+  }
 
   context.subscriptions.push(
     logger,
@@ -188,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await config.update('relayBaseUrl', nextValue.trim(), vscode.ConfigurationTarget.Global);
       logger.info(`Relay base URL updated to ${nextValue.trim()}. Reload Cursor to reconnect with the hosted relay.`);
       await vscode.window.showInformationMessage(
-        'Hosted relay URL saved. Reload Cursor to reconnect with the experimental hosted relay.',
+        'Hosted relay URL saved. Enable "Pingly: Experimental Hosted Relay Enabled" if you want the experimental Cursor cloud-agent relay.',
       );
     }),
     vscode.commands.registerCommand('agentNotifier.setupCursorWebhook', async () => {

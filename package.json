@@ -95,6 +95,11 @@
           "default": "",
           "description": "Optional hosted relay base URL for experimental Cursor cloud-agent webhook support."
         },
+        "agentNotifier.experimentalHostedRelayEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable the experimental hosted relay for Cursor cloud-agent webhooks. Leave this off for the normal local-first Pingly workflow."
+        },
         "agentNotifier.cursorWebhookSecret": {
           "type": "string",
           "default": "",

@@ -253,30 +253,57 @@ function buildCandidateDirs(root: string, startedAtMs: number): string[] {
 
 async function isMatchingCodexSession(filePath: string, cwd: string, startedAtMs: number): Promise<boolean> {
   try {
-    const handle = await fs.open(filePath, 'r');
-    try {
-      const buffer = Buffer.alloc(8192);
-      const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
-      const head = buffer.subarray(0, bytesRead).toString('utf8');
-      const firstLine = head.split('\n').find((line) => line.trim().length > 0);
-      if (!firstLine) {
-        return false;
-      }
-
-      const record = JSON.parse(firstLine) as Record<string, unknown>;
-      if (record.type !== 'session_meta') {
-        return false;
-      }
-
-      const payload = record.payload as Record<string, unknown> | undefined;
-      const sessionCwd = payload && typeof payload.cwd === 'string' ? payload.cwd : undefined;
-      const timestamp = payload && typeof payload.timestamp === 'string' ? Date.parse(payload.timestamp) : Number.NaN;
-
-      return sessionCwd === cwd && !Number.isNaN(timestamp) && timestamp >= startedAtMs - 15_000;
-    } finally {
-      await handle.close();
+    const firstLine = await readFirstNonEmptyLine(filePath);
+    if (!firstLine) {
+      return false;
     }
+
+    const record = JSON.parse(firstLine) as Record<string, unknown>;
+    if (record.type !== 'session_meta') {
+      return false;
+    }
+
+    const payload = record.payload as Record<string, unknown> | undefined;
+    const sessionCwd = payload && typeof payload.cwd === 'string' ? payload.cwd : undefined;
+    const timestamp = payload && typeof payload.timestamp === 'string' ? Date.parse(payload.timestamp) : Number.NaN;
+
+    return sessionCwd === cwd && !Number.isNaN(timestamp) && timestamp >= startedAtMs - 15_000;
   } catch {
     return false;
+  }
+}
+
+async function readFirstNonEmptyLine(filePath: string): Promise<string | undefined> {
+  const handle = await fs.open(filePath, 'r');
+  try {
+    const maxBytes = 256 * 1024;
+    const chunkSize = 4096;
+    const chunks: Buffer[] = [];
+    let offset = 0;
+
+    while (offset < maxBytes) {
+      const remaining = maxBytes - offset;
+      const buffer = Buffer.alloc(Math.min(chunkSize, remaining));
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, offset);
+      if (bytesRead === 0) {
+        break;
+      }
+
+      const chunk = buffer.subarray(0, bytesRead);
+      chunks.push(chunk);
+      offset += bytesRead;
+
+      if (chunk.includes(0x0a)) {
+        break;
+      }
+    }
+
+    const head = Buffer.concat(chunks).toString('utf8');
+    return head
+      .split('\n')
+      .map((line) => line.trim())
+      .find((line) => line.length > 0);
+  } finally {
+    await handle.close();
   }
 }
