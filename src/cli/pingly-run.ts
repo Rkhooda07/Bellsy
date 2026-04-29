@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 
 import { AgentEventPriority, AgentEventSource, AgentEventType } from '../core/types';
 
+import { CodexSessionMonitor } from './CodexSessionMonitor';
 import { DetectedCliEvent, PatternDetector } from './PatternDetector';
 
 type CliOptions = {
@@ -88,6 +89,7 @@ async function runWithTerminalCapture(
   runId: string,
 ): Promise<void> {
   await fs.writeFile(plan.logFilePath, '');
+  const startedAtMs = Date.now();
 
   const child = spawn(plan.command, plan.args, {
     stdio: 'inherit',
@@ -98,8 +100,23 @@ async function runWithTerminalCapture(
     const events = detector.ingest(chunk);
     await handleDetectedEvents(events, options, runId);
   });
+  const sessionMonitor = shouldMonitorCodexSession(options)
+    ? new CodexSessionMonitor(
+        {
+          sessionsRoot: path.join(os.homedir(), '.codex', 'sessions'),
+          cwd: process.cwd(),
+          startedAtMs,
+          agent: options.agent,
+        },
+        async (event) => {
+          await handleDetectedEvents([event], options, runId);
+        },
+      )
+    : undefined;
+  sessionMonitor?.start();
 
   child.on('error', async (error) => {
+    await sessionMonitor?.stop();
     await poller.stop();
     await fs.rm(plan.logFilePath, { force: true });
     console.error(`[pingly-run] Failed to start ${plan.command}: ${error.message}`);
@@ -107,10 +124,10 @@ async function runWithTerminalCapture(
   });
 
   child.on('exit', (code) => {
-    void poller
-      .flush()
-      .then(() => handleDetectedEvents(detector.onExit(code), options, runId))
+    void Promise.all([poller.flush(), sessionMonitor?.flush()])
+      .then(() => handleDetectedEvents(exitEventsFor(options, detector, code), options, runId))
       .finally(async () => {
+        await sessionMonitor?.stop();
         await poller.stop();
         await fs.rm(plan.logFilePath, { force: true });
         process.exit(code ?? 1);
@@ -227,6 +244,23 @@ function shouldWrapInTerminal(options: CliOptions): boolean {
   return /^(codex|claude|claude-code)$/i.test(options.command) || /^(codex|claude|claude-code)$/i.test(options.agent);
 }
 
+function shouldMonitorCodexSession(options: CliOptions): boolean {
+  if (!/^(codex)$/i.test(options.command) && !/^(codex)$/i.test(options.agent)) {
+    return false;
+  }
+
+  const firstArg = options.args[0]?.toLowerCase();
+  return !firstArg || !NON_INTERACTIVE_CODEX_SUBCOMMANDS.has(firstArg);
+}
+
+function exitEventsFor(options: CliOptions, detector: PatternDetector, exitCode: number | null): DetectedCliEvent[] {
+  if (shouldMonitorCodexSession(options) && exitCode === 0) {
+    return [];
+  }
+
+  return detector.onExit(exitCode);
+}
+
 async function handleDetectedEvents(
   events: DetectedCliEvent[],
   options: CliOptions,
@@ -251,6 +285,7 @@ async function postEvent(
   options: CliOptions,
   runId: string,
 ): Promise<{ allowed?: boolean } | null> {
+  const correlationId = event.correlationId ?? `${runId}:${event.type}:${randomUUID()}`;
   const response = await fetch(options.endpoint, {
     method: 'POST',
     headers: {
@@ -262,7 +297,7 @@ async function postEvent(
       priority: event.priority,
       agent: options.agent,
       message: event.message,
-      correlationId: runId,
+      correlationId,
       metadata: {
         confidence: event.confidence,
         wrapper: 'pingly-run',
@@ -284,6 +319,28 @@ async function postEvent(
 
   return (await response.json().catch(() => null)) as { allowed?: boolean } | null;
 }
+
+const NON_INTERACTIVE_CODEX_SUBCOMMANDS = new Set([
+  'exec',
+  'review',
+  'login',
+  'logout',
+  'mcp',
+  'plugin',
+  'mcp-server',
+  'app-server',
+  'app',
+  'completion',
+  'sandbox',
+  'debug',
+  'apply',
+  'resume',
+  'fork',
+  'cloud',
+  'exec-server',
+  'features',
+  'help',
+]);
 
 function decodeInput(value: string): string {
   return value.replace(/\\n/g, '\n').replace(/\\t/g, '\t');

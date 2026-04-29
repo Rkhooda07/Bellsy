@@ -5,6 +5,7 @@ export type DetectedCliEvent = {
   message: string;
   priority: AgentEventPriority;
   confidence: 'high' | 'medium';
+  correlationId?: string;
 };
 
 type DetectorOptions = {

@@ -60,6 +60,8 @@ pingly-run --agent codex -- codex
 - non-zero exit / failure signal -> `attention_required`
 - confirmation prompt -> `permission_required`
 
+For interactive Codex sessions, Pingly also tails Codex's local session JSONL and sends a completion notification each time Codex finishes a response turn.
+
 ## Direct Local HTTP Events
 
 The extension also supports explicit local HTTP events at:
