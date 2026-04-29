@@ -37,18 +37,50 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const relayBaseUrl = config.get<string>('relayBaseUrl', '').trim();
   const experimentalHostedRelayEnabled = config.get<boolean>('experimentalHostedRelayEnabled', false);
   const relayService = new HostedRelayService(context, logger, relayBaseUrl);
+  const notificationClickUri = vscode.Uri.parse(
+    `${vscode.env.uriScheme}://${context.extension.id}/notification-click?target=agent`,
+  );
+  const focusAgentSurface = async (): Promise<void> => {
+    const terminal = vscode.window.activeTerminal ?? vscode.window.terminals.at(-1);
+
+    if (terminal) {
+      terminal.show(false);
+      await vscode.commands.executeCommand('workbench.action.terminal.focus');
+      return;
+    }
+
+    if (vscode.window.activeTextEditor) {
+      await vscode.window.showTextDocument(vscode.window.activeTextEditor.document, {
+        preserveFocus: false,
+        preview: false,
+        viewColumn: vscode.window.activeTextEditor.viewColumn,
+      });
+      await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      return;
+    }
+
+    await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
+  };
   const soundService = new SoundService(
     path.join(context.extensionPath, 'sounds'),
     config.get<boolean>('soundEnabled', true),
     config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
   );
-  const systemNotifService = new SystemNotifService(context.extensionPath);
+  const systemNotifService = new SystemNotifService(
+    context.extensionPath,
+    vscode.env.appName,
+    notificationClickUri.toString(),
+    () => {
+      void focusAgentSurface();
+    },
+  );
   const notificationEngine = new NotificationEngine(
     notificationService,
     systemNotifService,
     soundService,
     logger,
     () => vscode.window.state.focused,
+    () => logger.show(),
   );
   const permissionManager = new PermissionManager(
     notificationService,
@@ -163,6 +195,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     logger,
     relayService,
     statusBarService,
+    vscode.window.registerUriHandler({
+      handleUri: async (uri: vscode.Uri) => {
+        if (uri.authority !== context.extension.id || uri.path !== '/notification-click') {
+          return;
+        }
+
+        logger.info(`Notification click received via ${uri.toString(true)}`);
+        await focusAgentSurface();
+      },
+    }),
     vscode.commands.registerCommand('agentNotifier.showLogs', () => {
       logger.show();
     }),

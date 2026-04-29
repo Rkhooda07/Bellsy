@@ -14,6 +14,7 @@ export class NotificationEngine {
     private readonly soundService: SoundService,
     private readonly logger: OutputChannelLogger,
     private readonly isFocused: () => boolean,
+    private readonly openLogs: () => void = () => undefined,
   ) {}
 
   async requestPermission(event: AgentEvent): Promise<PermissionChoice> {
@@ -54,7 +55,9 @@ export class NotificationEngine {
         `(focused=${this.isFocused()}, critical=${critical})`,
     );
 
-    void this.notificationService.showTaskCompleted(this.formatMessage(event));
+    void this.notificationService
+      .showTaskCompleted(this.formatMessage(event))
+      .then((action) => this.handleNotificationAction(action), () => undefined);
     this.systemNotifService.notifyCompletion(this.formatMessage(event), critical);
 
     if (!this.systemNotifService.usesNativeSound()) {
@@ -69,7 +72,9 @@ export class NotificationEngine {
         `(focused=${this.isFocused()}, critical=${critical})`,
     );
 
-    void this.notificationService.showAttentionRequired(this.formatMessage(event));
+    void this.notificationService
+      .showAttentionRequired(this.formatMessage(event))
+      .then((action) => this.handleNotificationAction(action), () => undefined);
     this.systemNotifService.notifyAttention(this.formatMessage(event), critical);
 
     if (!this.systemNotifService.usesNativeSound()) {
@@ -102,5 +107,11 @@ export class NotificationEngine {
     }
 
     return `${event.agent}: ${event.message}`;
+  }
+
+  private handleNotificationAction(action: string | undefined): void {
+    if (action === 'Open Logs') {
+      this.openLogs();
+    }
   }
 }

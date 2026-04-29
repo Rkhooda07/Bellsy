@@ -174,6 +174,10 @@ export function parseCodexSessionLine(
     return null;
   }
 
+  if (record.type === 'response_item') {
+    return parseCodexApprovalRequest(record, agent, startedAtMs);
+  }
+
   if (record.type !== 'event_msg') {
     return null;
   }
@@ -207,6 +211,57 @@ export function parseCodexSessionLine(
   };
 }
 
+function parseCodexApprovalRequest(
+  record: Record<string, unknown>,
+  agent: string,
+  startedAtMs: number,
+): DetectedCliEvent | null {
+  const timestampValue = record.timestamp;
+  const timestampMs = typeof timestampValue === 'string' ? Date.parse(timestampValue) : Number.NaN;
+  if (Number.isNaN(timestampMs) || timestampMs < startedAtMs - 15_000) {
+    return null;
+  }
+
+  const payload = record.payload;
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const payloadRecord = payload as Record<string, unknown>;
+  if (payloadRecord.type !== 'function_call' || payloadRecord.name !== 'exec_command') {
+    return null;
+  }
+
+  const rawArguments = typeof payloadRecord.arguments === 'string' ? payloadRecord.arguments : undefined;
+  if (!rawArguments) {
+    return null;
+  }
+
+  try {
+    const args = JSON.parse(rawArguments) as Record<string, unknown>;
+    if (args.sandbox_permissions !== 'require_escalated') {
+      return null;
+    }
+
+    const justification =
+      typeof args.justification === 'string' && args.justification.trim().length > 0
+        ? args.justification.trim()
+        : undefined;
+    const command = typeof args.cmd === 'string' && args.cmd.trim().length > 0 ? args.cmd.trim() : undefined;
+    const callId = typeof payloadRecord.call_id === 'string' ? payloadRecord.call_id : undefined;
+
+    return {
+      type: AgentEventType.PERMISSION_REQUIRED,
+      priority: AgentEventPriority.HIGH,
+      confidence: 'high',
+      correlationId: callId ? `codex-approval:${callId}` : undefined,
+      message: buildApprovalMessage(agent, justification, command),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildCompletionMessage(lastAgentMessage?: string): string {
   const summary = summarizeAgentMessage(lastAgentMessage);
   if (!summary) {
@@ -231,6 +286,18 @@ function summarizeAgentMessage(message?: string): string | null {
   }
 
   return line.length > 120 ? `${line.slice(0, 117)}...` : line;
+}
+
+function buildApprovalMessage(agent: string, justification?: string, command?: string): string {
+  if (justification) {
+    return justification.endsWith('?') ? justification : `${justification}?`;
+  }
+
+  if (command) {
+    return `${agent}: Approval required to run \`${command}\``;
+  }
+
+  return `${agent}: Approval required to continue`;
 }
 
 function buildCandidateDirs(root: string, startedAtMs: number): string[] {

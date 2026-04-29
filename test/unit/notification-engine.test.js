@@ -59,8 +59,14 @@ function createHarness(focused) {
     },
     {
       info() {},
+      show() {
+        calls.push(['show-logs']);
+      },
     },
     () => focused,
+    () => {
+      calls.push(['show-logs']);
+    },
   );
 
   return { calls, engine };
@@ -139,6 +145,60 @@ test('attention notifications use the stronger popup and sound path', () => {
     ['popup-attention', 'Cursor background agent needs attention'],
     ['system-attention', 'Cursor background agent needs attention', true],
     ['sound-permission'],
+  ]);
+});
+
+test('open logs action from completion popup shows the output channel', async () => {
+  const calls = [];
+  const engine = new NotificationEngine(
+    {
+      async showPermissionRequest() {
+        return 'Allow';
+      },
+      showTaskCompleted(message) {
+        calls.push(['popup-complete', message]);
+        return Promise.resolve('Open Logs');
+      },
+      showAttentionRequired() {
+        return Promise.resolve(undefined);
+      },
+    },
+    {
+      usesNativeSound() {
+        return false;
+      },
+      async showPermissionRequest() {
+        return undefined;
+      },
+      notifyCompletion(message, critical) {
+        calls.push(['system-complete', message, critical]);
+      },
+      notifyAttention() {},
+    },
+    {
+      playPermissionAlert() {},
+      playTaskComplete() {
+        calls.push(['sound-complete']);
+      },
+    },
+    {
+      info() {},
+      show() {},
+    },
+    () => true,
+    () => {
+      calls.push(['show-logs']);
+    },
+  );
+
+  engine.showTaskCompleted(createEvent({ message: 'Needs follow-up' }));
+  await Promise.resolve();
+
+  assert.deepEqual(calls, [
+    ['popup-complete', 'Needs follow-up'],
+    ['system-complete', 'Needs follow-up', true],
+    ['sound-complete'],
+    ['show-logs'],
   ]);
 });
 

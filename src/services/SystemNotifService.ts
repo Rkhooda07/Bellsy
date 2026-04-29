@@ -18,8 +18,19 @@ export class SystemNotifService {
     'MacOS',
     'terminal-notifier',
   );
+  private readonly macNotificationCenter: typeof notifier;
 
-  constructor(private readonly extensionPath: string) {}
+  constructor(
+    private readonly extensionPath: string,
+    private readonly hostAppName = '',
+    private readonly clickOpenUrl?: string,
+    private readonly onNotificationClick: () => void = () => undefined,
+  ) {
+    this.macNotificationCenter = new notifier.NotificationCenter({
+      withFallback: false,
+      customPath: this.macNotifierPath,
+    }) as typeof notifier;
+  }
 
   usesNativeSound(): boolean {
     return false;
@@ -65,32 +76,112 @@ export class SystemNotifService {
   }
 
   private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
-    const args = ['-title', title, '-message', message, '-sender', this.detectMacSenderBundleId()];
+    const senderBundleId = this.detectMacSenderBundleId();
+    const activateCommand = this.buildMacActivateCommand();
+    const notificationOptions = {
+      title,
+      message,
+      sender: senderBundleId,
+      activate: senderBundleId,
+      wait: true,
+      timeout: critical ? 30 : 10,
+    } as notifier.Notification & {
+      sender?: string;
+      activate?: string;
+      execute?: string;
+      open?: string;
+      timeout?: number;
+    };
 
-    if (critical) {
-      args.push('-timeout', '30');
+    if (this.clickOpenUrl) {
+      notificationOptions.open = this.clickOpenUrl;
+    } else if (activateCommand) {
+      notificationOptions.execute = activateCommand;
     }
 
     return new Promise((resolve) => {
-      execFile(this.macNotifierPath, args, { timeout: 3000 }, () => resolve());
+      this.macNotificationCenter.notify(
+        notificationOptions,
+        (_error, response, metadata) => {
+          if (this.isActivationResponse(response, metadata?.activationType)) {
+            this.onNotificationClick();
+          }
+
+          resolve();
+        },
+      );
     });
   }
 
   private detectMacSenderBundleId(): string {
-    const vscodeAppName = process.env.VSCODE_CLI_APPNAME ?? '';
+    const signals = [
+      this.hostAppName,
+      process.env.VSCODE_CLI_APPNAME ?? '',
+      process.env.VSCODE_DESKTOP_APP_NAME ?? '',
+      process.execPath,
+    ].join(' ');
 
-    if (vscodeAppName.includes('Code - Insiders')) {
+    if (signals.includes('Code - Insiders')) {
       return 'com.microsoft.VSCodeInsiders';
     }
 
-    if (vscodeAppName.includes('VSCodium')) {
+    if (signals.includes('VSCodium')) {
       return 'com.vscodium';
     }
 
-    if (vscodeAppName.includes('Cursor')) {
+    if (signals.includes('Cursor')) {
       return 'com.todesktop.230313mzl4w4u92';
     }
 
     return 'com.microsoft.VSCode';
+  }
+
+  private buildMacActivateCommand(): string | undefined {
+    const appName = this.detectMacAppName();
+    if (!appName) {
+      return undefined;
+    }
+
+    const escapedAppName = appName.replace(/'/g, "'\\''");
+    return `open -a '${escapedAppName}'`;
+  }
+
+  private detectMacAppName(): string | undefined {
+    const signals = [
+      this.hostAppName,
+      process.env.VSCODE_CLI_APPNAME ?? '',
+      process.env.VSCODE_DESKTOP_APP_NAME ?? '',
+      process.execPath,
+    ].join(' ');
+
+    if (signals.includes('Cursor')) {
+      return 'Cursor';
+    }
+
+    if (signals.includes('Code - Insiders')) {
+      return 'Visual Studio Code - Insiders';
+    }
+
+    if (signals.includes('VSCodium')) {
+      return 'VSCodium';
+    }
+
+    if (signals.includes('Visual Studio Code') || signals.includes('VS Code') || signals.includes('Code')) {
+      return 'Visual Studio Code';
+    }
+
+    return this.hostAppName || undefined;
+  }
+
+  private isActivationResponse(response?: string, activationType?: string): boolean {
+    const normalizedResponse = (response ?? '').toLowerCase().trim();
+    const normalizedActivationType = (activationType ?? '').toLowerCase().trim();
+
+    return (
+      normalizedResponse === 'activate' ||
+      normalizedResponse === 'clicked' ||
+      normalizedActivationType === 'activate' ||
+      normalizedActivationType === 'clicked'
+    );
   }
 }

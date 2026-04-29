@@ -42,6 +42,52 @@ test('ignores non-task-complete codex session events', () => {
   assert.equal(event, null);
 });
 
+test('parses codex exec_command approval requests into permission notifications', () => {
+  const line = JSON.stringify({
+    timestamp: '2026-04-29T08:30:00.000Z',
+    type: 'response_item',
+    payload: {
+      type: 'function_call',
+      name: 'exec_command',
+      call_id: 'call_approval_123',
+      arguments: JSON.stringify({
+        cmd: 'git init',
+        sandbox_permissions: 'require_escalated',
+        justification: 'Do you want to initialize a Git repository in this folder?',
+      }),
+    },
+  });
+
+  const event = parseCodexSessionLine(line, 'codex', Date.parse('2026-04-29T08:29:00.000Z'));
+
+  assert.equal(event.type, AgentEventType.PERMISSION_REQUIRED);
+  assert.equal(event.priority, AgentEventPriority.HIGH);
+  assert.equal(event.confidence, 'high');
+  assert.equal(event.correlationId, 'codex-approval:call_approval_123');
+  assert.match(event.message, /initialize a Git repository/i);
+});
+
+test('ignores stale codex approval requests from before the wrapper started', () => {
+  const line = JSON.stringify({
+    timestamp: '2026-04-29T08:10:00.000Z',
+    type: 'response_item',
+    payload: {
+      type: 'function_call',
+      name: 'exec_command',
+      call_id: 'call_old_approval',
+      arguments: JSON.stringify({
+        cmd: 'git init',
+        sandbox_permissions: 'require_escalated',
+        justification: 'Do you want to initialize a Git repository in this folder?',
+      }),
+    },
+  });
+
+  const event = parseCodexSessionLine(line, 'codex', Date.parse('2026-04-29T08:29:00.000Z'));
+
+  assert.equal(event, null);
+});
+
 test('finds matching codex session files even when session_meta exceeds 8kb', async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'pingly-codex-monitor-'));
   const startedAt = Date.parse('2026-04-29T09:20:20.000Z');
