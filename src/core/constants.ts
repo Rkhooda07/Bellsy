@@ -10,7 +10,14 @@ export const DEFAULT_SOUND_VOLUME = 45;
 export const DEFAULT_PERMISSION_REMINDER_ENABLED = true;
 export const DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS = 30;
 export const DEFAULT_CURSOR_WEBHOOK_SECRET = '';
+export const DEFAULT_SOUND_MODE = 'focus';
 export const SOUND_FILES = {
-  permission: ['permission.wav'],
-  completed: ['completion.wav'],
+  focus: {
+    permission: ['permission.wav'],
+    completed: ['completion.wav'],
+  },
+  vibe: {
+    permission: ['permission_alert.wav'],
+    completed: ['task_complete.wav'],
+  },
 } as const;

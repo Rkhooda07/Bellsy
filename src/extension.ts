@@ -17,7 +17,7 @@ import { OutputChannelLogger } from './services/OutputChannelLogger';
 import { PermissionManager } from './services/PermissionManager';
 import { IResponseTarget, ResponseDispatcher } from './services/ResponseDispatcher';
 import { CursorSetupService } from './services/CursorSetupService';
-import { SoundService } from './services/SoundService';
+import { SoundService, getSoundMode } from './services/SoundService';
 import { StatusBarService } from './services/StatusBarService';
 import { SystemNotifService } from './services/SystemNotifService';
 import { HttpTransport } from './transport/HttpTransport';
@@ -54,7 +54,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
   };
   const soundService = new SoundService(
-    path.join(context.extensionPath, 'sounds'),
+    [path.join(context.extensionPath, 'media', 'sounds'), path.join(context.extensionPath, 'sounds')],
     config.get<boolean>('soundEnabled', true),
     config.get<number>('soundVolume', DEFAULT_SOUND_VOLUME),
   );
@@ -166,6 +166,37 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
     vscode.commands.registerCommand('agentNotifier.testCursorWebhook', async () => {
       await cursorSetupService.testWebhook();
+    }),
+    vscode.commands.registerCommand('pingly.toggleSoundMode', async () => {
+      const soundConfig = vscode.workspace.getConfiguration('pingly');
+      const current = getSoundMode();
+      const selection = await vscode.window.showQuickPick(
+        [
+          {
+            label: 'Focus',
+            description: current === 'focus' ? 'Current default' : 'Professional sounds',
+            mode: 'focus' as const,
+          },
+          {
+            label: 'Vibe',
+            description: current === 'vibe' ? 'Current' : 'Fun sounds',
+            mode: 'vibe' as const,
+          },
+        ],
+        {
+          title: 'Pingly: Sound Mode',
+          placeHolder: 'Choose the sound style for completion and permission alerts',
+          canPickMany: false,
+        },
+      );
+
+      if (!selection || selection.mode === current) {
+        return;
+      }
+
+      await soundConfig.update('soundMode', selection.mode, vscode.ConfigurationTarget.Global);
+      await vscode.window.showInformationMessage(`Pingly sound mode: ${selection.mode}`);
+      soundService.playTaskComplete();
     }),
     vscode.commands.registerCommand('agentNotifier.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();

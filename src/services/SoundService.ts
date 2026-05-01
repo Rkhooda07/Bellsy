@@ -3,36 +3,51 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-import { SOUND_FILES } from '../core/constants';
+import { DEFAULT_SOUND_MODE, SOUND_FILES } from '../core/constants';
 
-const MACOS_SYSTEM_SOUNDS = {
-  permission: '/System/Library/Sounds/Ping.aiff',
-  completed: '/System/Library/Sounds/Glass.aiff',
-} as const;
 const MACOS_NOTIFICATION_SYNC_DELAY_MS = 120;
 
+export type SoundMode = 'focus' | 'vibe';
+
+export function getSoundMode(): SoundMode {
+  try {
+    const vscode = require('vscode') as typeof import('vscode');
+    const mode = vscode.workspace.getConfiguration('pingly').get<string>('soundMode', DEFAULT_SOUND_MODE);
+    return mode === 'vibe' ? 'vibe' : 'focus';
+  } catch {
+    return 'focus';
+  }
+}
+
 export class SoundService {
+  private readonly soundsPaths: readonly string[];
+
   constructor(
-    private readonly soundsPath: string,
+    soundsPath: string | readonly string[],
     private readonly soundEnabled: boolean,
     private readonly volume: number,
-  ) {}
+    private readonly readSoundMode: () => SoundMode = getSoundMode,
+  ) {
+    this.soundsPaths = Array.isArray(soundsPath) ? soundsPath : [soundsPath];
+  }
 
   playPermissionAlert(): void {
-    this.play(SOUND_FILES.permission, MACOS_SYSTEM_SOUNDS.permission);
+    this.play('permission');
   }
 
   playTaskComplete(): void {
-    this.play(SOUND_FILES.completed, MACOS_SYSTEM_SOUNDS.completed);
+    this.play('completed');
   }
 
-  private play(filenames: readonly string[], macosSystemSoundPath: string): void {
+  private play(kind: 'permission' | 'completed'): void {
     if (!this.soundEnabled) {
       return;
     }
 
+    const mode = this.readSoundMode();
+    const filenames = SOUND_FILES[mode][kind];
     const fullPath = this.resolveSoundPath(filenames);
-    const command = this.buildCommand(fullPath, macosSystemSoundPath);
+    const command = this.buildCommand(fullPath);
     if (!command) {
       return;
     }
@@ -54,25 +69,26 @@ export class SoundService {
   }
 
   private resolveSoundPath(filenames: readonly string[]): string | undefined {
-    for (const filename of filenames) {
-      const fullPath = path.join(this.soundsPath, filename);
-      if (fs.existsSync(fullPath)) {
-        return fullPath;
+    for (const soundsPath of this.soundsPaths) {
+      for (const filename of filenames) {
+        const fullPath = path.join(soundsPath, filename);
+        if (fs.existsSync(fullPath)) {
+          return fullPath;
+        }
       }
     }
 
     const [fallback] = filenames;
-    return fallback ? path.join(this.soundsPath, fallback) : undefined;
+    return fallback ? path.join(this.soundsPaths[0] ?? '', fallback) : undefined;
   }
 
-  buildCommand(filePath: string | undefined, macosSystemSoundPath: string): string | null {
+  buildCommand(filePath: string | undefined): string | null {
     switch (os.platform()) {
       case 'darwin':
         if (filePath && fs.existsSync(filePath)) {
           return `afplay -v ${this.normalizedVolume} "${filePath}"`;
         }
-
-        return `afplay -v ${this.normalizedVolume} "${macosSystemSoundPath}"`;
+        return null;
       case 'win32':
         if (!filePath || !fs.existsSync(filePath)) {
           return null;

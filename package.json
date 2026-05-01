@@ -34,7 +34,8 @@
     "onStartupFinished",
     "onCommand:agentNotifier.showLogs",
     "onCommand:agentNotifier.setupCursorWebhook",
-    "onCommand:agentNotifier.testCursorWebhook"
+    "onCommand:agentNotifier.testCursorWebhook",
+    "onCommand:pingly.toggleSoundMode"
   ],
   "main": "./out/extension.js",
   "bin": {
@@ -54,6 +55,10 @@
       {
         "command": "agentNotifier.testCursorWebhook",
         "title": "Pingly: Test Local Notifications"
+      },
+      {
+        "command": "pingly.toggleSoundMode",
+        "title": "Pingly: Toggle Sound Mode"
       }
     ],
     "configuration": {
@@ -77,6 +82,15 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Preferred playback volume. Applied to macOS native playback and supported bundled playback commands."
+        },
+        "pingly.soundMode": {
+          "type": "string",
+          "default": "focus",
+          "enum": [
+            "focus",
+            "vibe"
+          ],
+          "description": "Controls sound style: focus (professional) or vibe (fun)."
         },
         "agentNotifier.httpResponseTimeoutMs": {
           "type": "number",
