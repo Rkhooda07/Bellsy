@@ -1,141 +1,98 @@
 # Pingly
 
-Pingly is a Cursor-compatible extension for **local coding-agent notifications**. It tells you when tools like Claude Code, Codex CLI, shell scripts, and other local agent workflows finish, fail, or need approval.
+Pingly is a local-first notification layer for CLI agents and scripts such as Codex CLI and Claude Code. It notifies you when a run completes, fails, or needs approval, then lets you jump back into your editor quickly.
 
-## Why Use It
+## What Ships in the Production Flow
 
-Running local agents normally means you have to keep watching the terminal. Pingly adds one thin local notification layer:
+- local HTTP listener inside the extension
+- `pingly-run` wrapper for local agent processes
+- in-editor popup notifications
+- system notifications
+- bundled completion and permission sounds
+- click-to-return behavior back into the editor
 
-- completion notifications when a run succeeds
-- stronger attention notifications when a run fails
-- approval prompts for interactive confirmation flows
-- the same notification behavior across different local tools
+The primary workflow is local only. The terminal running the agent and the editor running Pingly must be on the same machine or local network namespace.
 
 ## Quick Start
 
-1. Install the extension in Cursor.
-2. Run `Pingly: Run Self Test`.
-3. Run `Pingly: Setup Local Agent Notifications`.
-4. Copy a starter command such as:
-   - `pingly-run --agent claude-code -- claude`
-   - `pingly-run --agent codex -- codex`
-5. Run `Pingly: Test Local Notifications`.
-6. Start your local tool through `pingly-run`.
-
-No tunnel, hosted webhook, Cursor Pro plan, or cloud-agent API is required for the primary workflow.
-
-## What It Supports
-
-- local CLI tools launched through `pingly-run`
-- direct local HTTP events at `http://127.0.0.1:9001/event`
-- approval prompts with allow/deny responses
-- shell-script and hook-based integrations for tools that can emit explicit local events
-
-## Commands
-
-- `Pingly: Run Self Test`
-- `Pingly: Setup Local Agent Notifications`
-- `Pingly: Test Local Notifications`
-- `Pingly: Show Logs`
-- `Pingly: Show Pending Requests`
-- `Pingly: Configure Hosted Relay URL (Experimental)`
-
-## Primary Setup Path
-
-Use the wrapper command:
-
-```bash
-pingly-run --agent claude-code -- claude
-```
-
-or:
+1. Install Pingly in Cursor, VS Code, or another VS Code-compatible editor.
+2. Run `Pingly: Setup Local Agent Notifications`.
+3. Copy one of the wrapper commands:
 
 ```bash
 pingly-run --agent codex -- codex
 ```
 
-`pingly-run` watches output and process exit state, then emits normalized local events:
+```bash
+pingly-run --agent claude-code -- claude
+```
 
-- success -> `task_completed`
-- non-zero exit / failure signal -> `attention_required`
-- confirmation prompt -> `permission_required`
+4. Run `Pingly: Test Local Notifications`.
+5. Start your real agent run through `pingly-run`.
 
-For interactive Codex sessions, Pingly also tails Codex's local session JSONL and sends a completion notification each time Codex finishes a response turn.
+## Public Commands
 
-## Direct Local HTTP Events
+- `Pingly: Setup Local Agent Notifications`
+- `Pingly: Test Local Notifications`
+- `Pingly: Show Logs`
 
-The extension also supports explicit local HTTP events at:
+Pending approval requests remain accessible from the status bar and reminder prompts instead of adding extra command-palette clutter.
+
+## Local Event Endpoint
+
+Pingly listens on a loopback HTTP endpoint:
 
 ```text
 http://127.0.0.1:9001/event
 ```
 
-Completion example:
+If port `9001` is busy, Pingly automatically falls back to another free local port. The setup command and status bar always reflect the live endpoint for the current editor session.
+
+Example completion event:
 
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
-  -d '{"type":"task_completed","message":"Local tool finished"}'
+  -d '{"type":"task_completed","message":"Local agent finished"}'
 ```
 
-Attention example:
+Example failure event:
 
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
-  -d '{"type":"attention_required","message":"Local tool failed"}'
+  -d '{"type":"attention_required","message":"Local agent failed"}'
 ```
 
-Permission example:
+Example approval event:
 
 ```bash
 curl -X POST http://127.0.0.1:9001/event \
   -H "content-type: application/json" \
-  -d '{"type":"permission_required","message":"Local tool wants approval"}'
+  -d '{"type":"permission_required","message":"Local agent needs approval"}'
 ```
+
+## Codex Support
+
+Interactive Codex runs go beyond process exit detection:
+
+- response completion is detected from Codex session JSONL `task_complete` events
+- approval prompts are detected from `exec_command` calls that request escalated sandbox permissions
+- stale session events from before the current wrapper run are ignored
+
+This is what makes completion and approval notifications reliable for interactive Codex sessions.
 
 ## Settings
 
 - `agentNotifier.httpPort`
-  Local loopback port used by the extension.
-
 - `agentNotifier.soundEnabled`
-  Enables notification sounds.
-
 - `agentNotifier.soundVolume`
-  Preferred playback volume where supported.
-
-- `agentNotifier.transport`
-  Transport used to receive local events. `http` is the recommended default.
-
-- `agentNotifier.relayBaseUrl`
-  Optional experimental hosted relay URL for secondary Cursor cloud-agent workflows.
-
-## File Transport
-
-If you prefer file-based local workflows, set:
-
-```json
-"agentNotifier.transport": "file"
-```
-
-Defaults:
-
-- request file: `/tmp/agent_event.json`
-- response file: `/tmp/agent_response.json`
-
-## Experimental Hosted Relay
-
-The old hosted Cursor relay remains in the repo as a secondary/experimental path. It is no longer the primary workflow and may require paid Cursor cloud-agent access.
-
-Relay code and deployment notes live in [relay](./relay).
+- `agentNotifier.httpResponseTimeoutMs`
+- `agentNotifier.permissionReminderEnabled`
+- `agentNotifier.permissionReminderIntervalSeconds`
 
 ## Troubleshooting
 
-- If local events do not work, check whether port `9001` is already in use.
-- If wrapper runs do not notify, run `Pingly: Show Logs`.
-- If approvals do not appear, confirm the tool is emitting recognizable confirmation text or send explicit `permission_required` events.
-
-## Release Status
-
-This is a preview release focused on local coding-agent notifications.
+- If notifications do not appear, run `Pingly: Show Logs`.
+- If local events fail, check the status bar for the live endpoint instead of assuming `9001` is active.
+- If approval prompts seem stuck, use the reminder popup or status bar item to reopen the pending request list.

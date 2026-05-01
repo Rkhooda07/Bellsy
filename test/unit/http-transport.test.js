@@ -113,7 +113,10 @@ test('http transport accepts cursor background agent completion webhooks', async
     status: 'FINISHED',
     summary: 'Background work finished',
   });
-  const transport = new HttpTransport(9001, 500, createLogger(), secret);
+  const transport = new HttpTransport(9001, 500, createLogger(), {
+    cursorWebhookEnabled: true,
+    cursorWebhookSecret: secret,
+  });
   let received;
   transport.onEvent((event) => {
     received = event;
@@ -132,6 +135,16 @@ test('http transport accepts cursor background agent completion webhooks', async
   assert.equal(received.agent, 'cursor-background');
 });
 
+test('http transport does not expose the cursor webhook endpoint in local-first mode', async () => {
+  const transport = new HttpTransport(9001, 500, createLogger());
+  const req = createRequest(JSON.stringify({ event: 'statusChange', status: 'FINISHED' }), 'POST', '/cursor/webhook');
+  const res = createResponse();
+
+  await transport.handleRequest(req, res);
+
+  assert.equal(res.statusCode, 404);
+});
+
 test('http transport rejects cursor webhook with invalid signature', async () => {
   const secret = '12345678901234567890123456789012';
   const body = JSON.stringify({
@@ -139,7 +152,10 @@ test('http transport rejects cursor webhook with invalid signature', async () =>
     id: 'bc_123',
     status: 'FINISHED',
   });
-  const transport = new HttpTransport(9001, 500, createLogger(), secret);
+  const transport = new HttpTransport(9001, 500, createLogger(), {
+    cursorWebhookEnabled: true,
+    cursorWebhookSecret: secret,
+  });
   const req = createRequest(body, 'POST', '/cursor/webhook');
   req.headers['x-webhook-signature'] = 'sha256=bad';
   req.headers['x-webhook-event'] = 'statusChange';

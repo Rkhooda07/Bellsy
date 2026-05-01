@@ -31,7 +31,10 @@ export class TransportFactory {
       config.httpPort || DEFAULT_HTTP_PORT,
       config.httpResponseTimeoutMs || DEFAULT_HTTP_RESPONSE_TIMEOUT_MS,
       logger,
-      config.cursorWebhookSecret || DEFAULT_CURSOR_WEBHOOK_SECRET,
+      {
+        cursorWebhookEnabled: config.cursorWebhookEnabled ?? false,
+        cursorWebhookSecret: config.cursorWebhookSecret || DEFAULT_CURSOR_WEBHOOK_SECRET,
+      },
     );
   }
 
@@ -44,6 +47,7 @@ export class TransportFactory {
         httpPort: config.get<number>('httpPort', DEFAULT_HTTP_PORT),
         relayBaseUrl: config.get<string>('relayBaseUrl', ''),
         cursorWebhookSecret: config.get<string>('cursorWebhookSecret', DEFAULT_CURSOR_WEBHOOK_SECRET),
+        cursorWebhookEnabled: config.get<boolean>('experimentalHostedRelayEnabled', false),
         watchFilePath: config.get<string>('watchFilePath', DEFAULT_WATCH_FILE_PATH),
         watchResponseFilePath: config.get<string>('watchResponseFilePath', DEFAULT_WATCH_RESPONSE_FILE_PATH),
         soundEnabled: config.get<boolean>('soundEnabled', true),

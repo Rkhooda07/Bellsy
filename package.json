@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "publisher": "rkhooda07",
   "license": "MIT",
-  "preview": true,
+  "preview": false,
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -14,13 +14,13 @@
     "Other"
   ],
   "keywords": [
-    "cursor",
-    "cursor-agent",
-    "background-agent",
     "notifications",
     "agent",
-    "webhook",
-    "productivity"
+    "productivity",
+    "codex",
+    "claude-code",
+    "vscode",
+    "local"
   ],
   "repository": {
     "type": "git",
@@ -33,9 +33,6 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:agentNotifier.showLogs",
-    "onCommand:agentNotifier.runSelfTest",
-    "onCommand:agentNotifier.showPendingList",
-    "onCommand:agentNotifier.configureRelayBaseUrl",
     "onCommand:agentNotifier.setupCursorWebhook",
     "onCommand:agentNotifier.testCursorWebhook"
   ],
@@ -51,18 +48,6 @@
         "title": "Pingly: Show Logs"
       },
       {
-        "command": "agentNotifier.runSelfTest",
-        "title": "Pingly: Run Self Test"
-      },
-      {
-        "command": "agentNotifier.configureRelayBaseUrl",
-        "title": "Pingly: Configure Hosted Relay URL (Experimental)"
-      },
-      {
-        "command": "agentNotifier.showPendingList",
-        "title": "Pingly: Show Pending Requests"
-      },
-      {
         "command": "agentNotifier.setupCursorWebhook",
         "title": "Pingly: Setup Local Agent Notifications"
       },
@@ -74,51 +59,17 @@
     "configuration": {
       "title": "Pingly",
       "properties": {
-        "agentNotifier.transport": {
-          "type": "string",
-          "enum": [
-            "file",
-            "http"
-          ],
-          "default": "http",
-          "description": "Transport used to receive AI agent events."
-        },
         "agentNotifier.httpPort": {
           "type": "number",
           "default": 9001,
           "minimum": 1,
           "maximum": 65535,
-          "description": "Loopback HTTP port used by the extension."
-        },
-        "agentNotifier.relayBaseUrl": {
-          "type": "string",
-          "default": "",
-          "description": "Optional hosted relay base URL for experimental Cursor cloud-agent webhook support."
-        },
-        "agentNotifier.experimentalHostedRelayEnabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable the experimental hosted relay for Cursor cloud-agent webhooks. Leave this off for the normal local-first Pingly workflow."
-        },
-        "agentNotifier.cursorWebhookSecret": {
-          "type": "string",
-          "default": "",
-          "description": "Optional HMAC secret used to verify direct Cursor webhooks sent to /cursor/webhook for experimental hosted flows."
-        },
-        "agentNotifier.watchFilePath": {
-          "type": "string",
-          "default": "/tmp/agent_event.json",
-          "description": "Path to the JSON file watched in file transport mode."
-        },
-        "agentNotifier.watchResponseFilePath": {
-          "type": "string",
-          "default": "/tmp/agent_response.json",
-          "description": "Path written with allow or deny responses in file transport mode."
+          "description": "Preferred loopback HTTP port used by the extension. If the port is busy, Pingly automatically falls back to another free local port."
         },
         "agentNotifier.soundEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable notification sounds. macOS uses native system sounds; Windows and Linux use bundled sound files."
+          "description": "Enable bundled notification sounds."
         },
         "agentNotifier.soundVolume": {
           "type": "number",

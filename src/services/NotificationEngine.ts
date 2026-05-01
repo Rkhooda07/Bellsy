@@ -82,16 +82,6 @@ export class NotificationEngine {
     }
   }
 
-  async runSelfTest(): Promise<void> {
-    this.logger.info('Running notification self-test');
-    await this.notificationService.showTaskCompleted('Self test: in-editor notification is working');
-    this.systemNotifService.notifyCompletion('Self test: system notification is working', true);
-
-    if (!this.systemNotifService.usesNativeSound()) {
-      this.soundService.playTaskComplete();
-    }
-  }
-
   private shouldUseProminentSystemNotification(): boolean {
     return true;
   }

@@ -11,7 +11,7 @@ test('macOS permission sound prefers the bundled wav file', () => {
   os.platform = () => 'darwin';
 
   try {
-    const soundPath = path.resolve(__dirname, '../../sounds/permission_alert.wav');
+    const soundPath = path.resolve(__dirname, '../../sounds/permission.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
     const service = new SoundService('/tmp/sounds', true, 45);
@@ -28,7 +28,7 @@ test('macOS completion sound prefers the bundled wav file', () => {
   os.platform = () => 'darwin';
 
   try {
-    const soundPath = path.resolve(__dirname, '../../sounds/task_complete.wav');
+    const soundPath = path.resolve(__dirname, '../../sounds/completion.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
     const service = new SoundService('/tmp/sounds', true, 45);

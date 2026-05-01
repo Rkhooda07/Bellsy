@@ -40,13 +40,14 @@ export interface PermissionResponse {
 export interface AgentNotifierConfig {
   transport: 'file' | 'http';
   httpPort: number;
-  relayBaseUrl: string;
-  cursorWebhookSecret: string;
-  watchFilePath: string;
-  watchResponseFilePath: string;
   soundEnabled: boolean;
   soundVolume: number;
   httpResponseTimeoutMs: number;
   permissionReminderEnabled: boolean;
   permissionReminderIntervalSeconds: number;
+  relayBaseUrl?: string;
+  cursorWebhookSecret?: string;
+  cursorWebhookEnabled?: boolean;
+  watchFilePath?: string;
+  watchResponseFilePath?: string;
 }

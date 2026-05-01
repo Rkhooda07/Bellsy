@@ -15,18 +15,28 @@ type PendingRequest = {
   timeout: NodeJS.Timeout;
 };
 
+type HttpTransportOptions = {
+  cursorWebhookEnabled?: boolean;
+  cursorWebhookSecret?: string;
+};
+
 export class HttpTransport implements ITransport, IResponseTarget {
   private server?: http.Server;
   private callback?: (event: AgentEvent) => void;
   private readonly pendingRequests = new Map<string, PendingRequest>();
   private activePort?: number;
+  private readonly cursorWebhookEnabled: boolean;
+  private readonly cursorWebhookSecret: string;
 
   constructor(
     private readonly port: number,
     private readonly responseTimeoutMs: number,
     private readonly logger: OutputChannelLogger,
-    private readonly cursorWebhookSecret = '',
-  ) {}
+    options: HttpTransportOptions = {},
+  ) {
+    this.cursorWebhookEnabled = options.cursorWebhookEnabled ?? false;
+    this.cursorWebhookSecret = options.cursorWebhookSecret ?? '';
+  }
 
   async start(): Promise<void> {
     this.server = await this.createListeningServer(this.port);
@@ -34,9 +44,11 @@ export class HttpTransport implements ITransport, IResponseTarget {
     const address = this.server.address();
     this.activePort = typeof address === 'object' && address ? address.port : this.port;
     this.logger.info(`HTTP transport listening on http://${DEFAULT_HTTP_HOST}:${this.activePort}/event`);
-    this.logger.info(
-      `Experimental Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.activePort}${CURSOR_WEBHOOK_PATH}`,
-    );
+    if (this.cursorWebhookEnabled) {
+      this.logger.info(
+        `Experimental Cursor webhook endpoint listening on http://${DEFAULT_HTTP_HOST}:${this.activePort}${CURSOR_WEBHOOK_PATH}`,
+      );
+    }
   }
 
   onEvent(callback: (event: AgentEvent) => void): void {
@@ -101,7 +113,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
       return;
     }
 
-    if (req.url === CURSOR_WEBHOOK_PATH) {
+    if (this.cursorWebhookEnabled && req.url === CURSOR_WEBHOOK_PATH) {
       await this.handleCursorWebhookRequest(req, res);
       return;
     }
