@@ -13,9 +13,9 @@ These examples are meant to shorten setup for local coding-agent workflows aroun
 The easiest setup is the wrapper command:
 
 ```bash
-pingly-run --agent claude-code -- claude
-pingly-run --agent codex -- codex
-pingly-run --agent my-tool -- your-command-here
+pingly-run claude
+pingly-run codex
+pingly-run your-command-here
 ```
 
 That path gives you:

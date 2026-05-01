@@ -20,11 +20,11 @@ The primary workflow is local only. The terminal running the agent and the edito
 3. Copy one of the wrapper commands:
 
 ```bash
-pingly-run --agent codex -- codex
+pingly-run codex
 ```
 
 ```bash
-pingly-run --agent claude-code -- claude
+pingly-run claude
 ```
 
 4. Run `Pingly: Test Local Notifications`.

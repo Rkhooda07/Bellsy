@@ -136,18 +136,14 @@ async function runWithTerminalCapture(
 }
 
 function parseArgs(args: string[]): CliOptions {
-  let agent = process.env.PINGLY_AGENT ?? 'unknown';
+  let agent = process.env.PINGLY_AGENT ?? '';
   let endpoint = process.env.PINGLY_URL ?? DEFAULT_ENDPOINT;
   let allowInput = process.env.PINGLY_ALLOW_INPUT ?? 'y\n';
   let denyInput = process.env.PINGLY_DENY_INPUT ?? 'n\n';
   let ttyMode = (process.env.PINGLY_TTY_MODE as CliOptions['ttyMode'] | undefined) ?? 'auto';
   const commandSeparatorIndex = args.indexOf('--');
-
-  if (commandSeparatorIndex === -1) {
-    printUsageAndExit();
-  }
-
-  const wrapperArgs = args.slice(0, commandSeparatorIndex);
+  const commandStartIndex = commandSeparatorIndex === -1 ? findCommandStartIndex(args) : commandSeparatorIndex + 1;
+  const wrapperArgs = commandSeparatorIndex === -1 ? args.slice(0, commandStartIndex) : args.slice(0, commandSeparatorIndex);
   for (let index = 0; index < wrapperArgs.length; index += 1) {
     const arg = wrapperArgs[index];
     const value = wrapperArgs[index + 1];
@@ -189,14 +185,14 @@ function parseArgs(args: string[]): CliOptions {
     printUsageAndExit();
   }
 
-  const commandParts = args.slice(commandSeparatorIndex + 1);
+  const commandParts = args.slice(commandStartIndex);
   const command = commandParts[0];
   if (!command) {
     printUsageAndExit();
   }
 
   return {
-    agent,
+    agent: agent || inferAgentName(command),
     endpoint,
     allowInput,
     denyInput,
@@ -204,6 +200,37 @@ function parseArgs(args: string[]): CliOptions {
     command,
     args: commandParts.slice(1),
   };
+}
+
+function findCommandStartIndex(args: string[]): number {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (!arg) {
+      continue;
+    }
+
+    if (arg === '--agent' || arg === '--endpoint' || arg === '--allow-input' || arg === '--deny-input' || arg === '--tty') {
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--')) {
+      printUsageAndExit();
+    }
+
+    return index;
+  }
+
+  return args.length;
+}
+
+function inferAgentName(command: string): string {
+  const baseName = path.basename(command).toLowerCase();
+  if (baseName === 'codex' || baseName === 'claude' || baseName === 'claude-code') {
+    return baseName;
+  }
+
+  return baseName || 'unknown';
 }
 
 function buildSpawnPlan(options: CliOptions): SpawnPlan {
@@ -348,7 +375,7 @@ function decodeInput(value: string): string {
 
 function printUsageAndExit(): never {
   console.error(
-    'Usage: pingly-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] [--tty auto|on|off] -- <command> [...args]',
+    'Usage: pingly-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] [--tty auto|on|off] [--] <command> [...args]',
   );
   process.exit(1);
 }
