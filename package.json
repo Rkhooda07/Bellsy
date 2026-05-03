@@ -9,6 +9,15 @@
   "engines": {
     "vscode": "^1.85.0"
   },
+  "extensionKind": [
+    "ui"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
   "categories": [
     "Utilities",
     "Other"
@@ -23,6 +32,7 @@
     "productivity",
     "codex",
     "claude-code",
+    "cursor",
     "vscode",
     "local"
   ],

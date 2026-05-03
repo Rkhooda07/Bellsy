@@ -1,43 +1,98 @@
 # Bellsy
 
-Bellsy is a local-first notification layer for CLI agents and scripts such as Codex CLI and Claude Code. It notifies you when a run completes, fails, or needs approval, then lets you jump back into your editor quickly.
+Bellsy tells you when a local coding agent or long-running CLI task needs your attention.
 
-## What Ships in the Production Flow
+Use it with Codex CLI, Claude Code, scripts, test runs, build commands, or any local process you do not want to babysit. Bellsy runs inside VS Code-compatible editors and sends completion, failure, and approval alerts through editor popups, system notifications, and bundled sounds.
 
-- local HTTP listener inside the extension
-- `bellsy-run` wrapper for local agent processes
-- in-editor popup notifications
-- system notifications
-- bundled completion and permission sounds
-- click-to-return behavior back into the editor
+## Why Bellsy?
 
-The primary workflow is local only. The terminal running the agent and the editor running Bellsy must be on the same machine or local network namespace.
+Local AI agents are useful, but they are easy to lose track of. A task can finish while you are in another app, fail while you are reading docs, or pause on an approval prompt while you assume it is still working.
+
+Bellsy adds the missing attention layer:
+
+- get notified when a local agent finishes
+- catch failed runs and obvious error states
+- hear approval prompts before the agent sits blocked
+- click a system notification to jump back into the editor
+- keep the setup local, simple, and editor-friendly
+
+## Works With
+
+- Codex CLI
+- Claude Code
+- Cursor
+- Visual Studio Code
+- VS Code-compatible editors
+- local scripts, test runners, build commands, and custom tools
+
+Bellsy is local-first. The terminal running your agent and the editor running Bellsy must be on the same machine or the same local network namespace.
 
 ## Quick Start
 
-1. Install Bellsy in Cursor, VS Code, or another VS Code-compatible editor.
-2. Run `Bellsy: Setup Local Agent Notifications`.
-3. Copy one of the wrapper commands:
+1. Install Bellsy.
+2. Open the Command Palette.
+3. Run `Bellsy: Setup Local Agent Notifications`.
+4. Copy one of the wrapper commands.
+5. Run `Bellsy: Test Local Notifications`.
+6. Start your agent through `bellsy-run`.
+
+For Codex CLI:
 
 ```bash
 bellsy-run codex
 ```
 
+For Claude Code:
+
 ```bash
 bellsy-run claude
 ```
 
-4. Run `Bellsy: Test Local Notifications`.
-5. Start your real agent run through `bellsy-run`.
+For any other command:
 
-## Public Commands
+```bash
+bellsy-run your-command-here
+```
+
+If Bellsy has to use a fallback port, the setup command copies the right endpoint automatically:
+
+```bash
+BELLSY_URL=http://127.0.0.1:PORT/event bellsy-run codex
+```
+
+## What You Get
+
+- In-editor notification popups
+- Native system notifications
+- Bundled completion and permission sounds
+- Focus and Vibe sound modes
+- Click-to-return behavior from system notifications
+- Pending approval reminders
+- Local HTTP event endpoint with automatic port fallback
+- Codex interactive turn completion through session event parsing
+- Codex approval detection from structured permission requests
+
+## Commands
 
 - `Bellsy: Setup Local Agent Notifications`
 - `Bellsy: Test Local Notifications`
 - `Bellsy: Show Logs`
 - `Bellsy: Toggle Sound Mode`
 
-Pending approval requests remain accessible from the status bar and reminder prompts instead of adding extra command-palette clutter.
+Pending approval requests are available from the status bar and reminder prompts, so the Command Palette stays focused on the main workflow.
+
+## Sound Modes
+
+Bellsy ships with two sound styles:
+
+- `Focus`: clean professional sounds for completion and permission alerts
+- `Vibe`: playful sounds for a lighter notification style
+
+Switch anytime with:
+
+```text
+Bellsy: Toggle Sound Mode
+```
 
 ## Local Event Endpoint
 
@@ -47,7 +102,15 @@ Bellsy listens on a loopback HTTP endpoint:
 http://127.0.0.1:9001/event
 ```
 
-If port `9001` is busy, Bellsy automatically falls back to another free local port. The setup command and status bar always reflect the live endpoint for the current editor session.
+If port `9001` is busy, Bellsy automatically chooses another free local port. The setup command and status bar always show the live endpoint for the current editor session.
+
+Example direct event:
+
+```bash
+curl -X POST http://127.0.0.1:9001/event \
+  -H 'content-type: application/json' \
+  -d '{"type":"task_completed","message":"Local task finished"}'
+```
 
 ## Settings
 
@@ -61,6 +124,16 @@ If port `9001` is busy, Bellsy automatically falls back to another free local po
 
 ## Troubleshooting
 
-- If notifications do not appear, run `Bellsy: Show Logs`.
-- If local events fail, check the status bar for the live endpoint instead of assuming `9001` is active.
-- If approval prompts seem stuck, use the reminder popup or status bar item to reopen the pending request list.
+If notifications do not appear, run:
+
+```text
+Bellsy: Show Logs
+```
+
+If local events fail, check the Bellsy status bar item for the live endpoint instead of assuming port `9001` is active.
+
+If approval prompts seem stuck, use the reminder popup or status bar item to reopen the pending request list.
+
+## Privacy
+
+Bellsy's production workflow is local-first. It listens on loopback, receives local events, and does not require a hosted relay for normal Codex, Claude Code, or script notifications.
