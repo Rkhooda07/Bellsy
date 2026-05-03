@@ -1,6 +1,7 @@
 src/**
 test/**
 examples/**
+docs/**
 implementation_plan.md
 tsconfig.json
 .gitignore
