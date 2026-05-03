@@ -1,8 +1,8 @@
-# Pingly Relay
+# Bellsy Relay
 
 This package contains the optional hosted relay for experimental Cursor cloud-agent notifications.
 
-It is no longer the primary Pingly workflow. The main product path is local-agent notifications through `pingly-run`, direct local HTTP events, and tool hooks.
+It is no longer the primary Bellsy workflow. The main product path is local-agent notifications through `bellsy-run`, direct local HTTP events, and tool hooks.
 
 ## Stack
 
@@ -36,5 +36,5 @@ npm run deploy
 After deploy, point the extension at the Worker URL with:
 
 ```json
-"agentNotifier.relayBaseUrl": "https://your-relay.example.workers.dev"
+"bellsy.relayBaseUrl": "https://your-relay.example.workers.dev"
 ```

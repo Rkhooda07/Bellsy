@@ -12,6 +12,7 @@ relay/**
 **/*.map
 out/relay/**
 out/simulation/**
+out/cli/pingly-run.*
 node_modules/**
 !node_modules/node-notifier/**
 !node_modules/node-notifier/node_modules/**

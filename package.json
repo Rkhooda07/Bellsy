@@ -13,6 +13,10 @@
     "Utilities",
     "Other"
   ],
+  "galleryBanner": {
+    "color": "#0D2930",
+    "theme": "dark"
+  },
   "keywords": [
     "notifications",
     "agent",
@@ -31,7 +35,7 @@
   ],
   "main": "./out/extension.js",
   "bin": {
-    "bellsy-run": "./out/cli/pingly-run.js"
+    "bellsy-run": "./out/cli/bellsy-run.js"
   },
   "icon": "assets/icon.png",
   "contributes": {
@@ -106,6 +110,7 @@
   },
   "scripts": {
     "build": "tsc -p ./",
+    "vscode:prepublish": "npm run build",
     "pretest": "npm run build",
     "test": "node --test test/unit/*.test.js",
     "watch": "tsc -watch -p ./",

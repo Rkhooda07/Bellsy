@@ -60,7 +60,7 @@ export class RelayHttpClient {
         'x-webhook-event': 'statusChange',
         'x-webhook-id': deliveryId,
         'x-webhook-signature': signature,
-        'user-agent': 'Pingly-Relay-Test/1.0',
+        'user-agent': 'Bellsy-Relay-Test/1.0',
       },
       body: payload,
     });

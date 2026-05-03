@@ -89,7 +89,7 @@ test('ignores stale codex approval requests from before the wrapper started', ()
 });
 
 test('finds matching codex session files even when session_meta exceeds 8kb', async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'pingly-codex-monitor-'));
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'bellsy-codex-monitor-'));
   const startedAt = Date.parse('2026-04-29T09:20:20.000Z');
   const sessionDir = path.join(tempRoot, '2026', '04', '29');
   const sessionFile = path.join(sessionDir, 'rollout-2026-04-29T14-50-28-test.jsonl');

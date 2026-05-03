@@ -29,7 +29,7 @@ async function waitFor(predicate, timeoutMs = 500) {
 }
 
 test('file transport emits requests and writes responses', async () => {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pingly-test-'));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'bellsy-test-'));
   const requestFile = path.join(tempDir, 'event.json');
   const responseFile = path.join(tempDir, 'response.json');
   const transport = new FileWatchTransport(requestFile, responseFile, createLogger());
