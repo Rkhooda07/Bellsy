@@ -1,6 +1,6 @@
 # Integration Examples
 
-These examples are meant to shorten setup for local coding-agent workflows around Pingly.
+These examples are meant to shorten setup for local coding-agent workflows around Bellsy.
 
 ## Files
 
@@ -13,9 +13,9 @@ These examples are meant to shorten setup for local coding-agent workflows aroun
 The easiest setup is the wrapper command:
 
 ```bash
-pingly-run claude
-pingly-run codex
-pingly-run your-command-here
+bellsy-run claude
+bellsy-run codex
+bellsy-run your-command-here
 ```
 
 That path gives you:
@@ -34,14 +34,14 @@ node examples/send-event.js permission_required "Claude Code wants approval"
 
 Environment variables:
 
-- `PINGLY_URL`: override the default `http://127.0.0.1:9001/event`
-- `PINGLY_TOOL`: optional metadata tag added to the payload
+- `BELLSY_URL`: override the default `http://127.0.0.1:9001/event`
+- `BELLSY_TOOL`: optional metadata tag added to the payload
 
 ## Hook Examples
 
 The shell examples are templates. Adapt them to the hook mechanism your tool exposes.
 
 - Use HTTP transport when you want synchronous allow or deny responses.
-- Use `pingly-run` when you want the least setup and broadest compatibility.
+- Use `bellsy-run` when you want the least setup and broadest compatibility.
 - Use native hooks when the tool already gives you a clean pre/post action surface.
 - Use file transport only for advanced local workflows that prefer file polling over HTTP.

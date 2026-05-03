@@ -1,6 +1,6 @@
 {
-  "name": "ai-agent-notifier",
-  "displayName": "Pingly",
+  "name": "bellsy",
+  "displayName": "Bellsy",
   "description": "Notifications for local coding agents, scripts, and CLI tools when work finishes, fails, or needs approval.",
   "version": "0.2.0",
   "publisher": "rkhooda07",
@@ -22,68 +22,60 @@
     "vscode",
     "local"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Rkhooda07/Pingly.git"
-  },
-  "homepage": "https://github.com/Rkhooda07/Pingly#readme",
-  "bugs": {
-    "url": "https://github.com/Rkhooda07/Pingly/issues"
-  },
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:agentNotifier.showLogs",
-    "onCommand:agentNotifier.setupCursorWebhook",
-    "onCommand:agentNotifier.testCursorWebhook",
-    "onCommand:pingly.toggleSoundMode"
+    "onCommand:bellsy.showLogs",
+    "onCommand:bellsy.setupLocalNotifications",
+    "onCommand:bellsy.testLocalNotifications",
+    "onCommand:bellsy.toggleSoundMode"
   ],
   "main": "./out/extension.js",
   "bin": {
-    "pingly-run": "./out/cli/pingly-run.js"
+    "bellsy-run": "./out/cli/pingly-run.js"
   },
   "icon": "assets/icon.png",
   "contributes": {
     "commands": [
       {
-        "command": "agentNotifier.showLogs",
-        "title": "Pingly: Show Logs"
+        "command": "bellsy.showLogs",
+        "title": "Bellsy: Show Logs"
       },
       {
-        "command": "agentNotifier.setupCursorWebhook",
-        "title": "Pingly: Setup Local Agent Notifications"
+        "command": "bellsy.setupLocalNotifications",
+        "title": "Bellsy: Setup Local Agent Notifications"
       },
       {
-        "command": "agentNotifier.testCursorWebhook",
-        "title": "Pingly: Test Local Notifications"
+        "command": "bellsy.testLocalNotifications",
+        "title": "Bellsy: Test Local Notifications"
       },
       {
-        "command": "pingly.toggleSoundMode",
-        "title": "Pingly: Toggle Sound Mode"
+        "command": "bellsy.toggleSoundMode",
+        "title": "Bellsy: Toggle Sound Mode"
       }
     ],
     "configuration": {
-      "title": "Pingly",
+      "title": "Bellsy",
       "properties": {
-        "agentNotifier.httpPort": {
+        "bellsy.httpPort": {
           "type": "number",
           "default": 9001,
           "minimum": 1,
           "maximum": 65535,
-          "description": "Preferred loopback HTTP port used by the extension. If the port is busy, Pingly automatically falls back to another free local port."
+          "description": "Preferred loopback HTTP port used by the extension. If the port is busy, Bellsy automatically falls back to another free local port."
         },
-        "agentNotifier.soundEnabled": {
+        "bellsy.soundEnabled": {
           "type": "boolean",
           "default": true,
           "description": "Enable bundled notification sounds."
         },
-        "agentNotifier.soundVolume": {
+        "bellsy.soundVolume": {
           "type": "number",
           "default": 45,
           "minimum": 0,
           "maximum": 100,
           "description": "Preferred playback volume. Applied to macOS native playback and supported bundled playback commands."
         },
-        "pingly.soundMode": {
+        "bellsy.soundMode": {
           "type": "string",
           "default": "focus",
           "enum": [
@@ -92,18 +84,18 @@
           ],
           "description": "Controls sound style: focus (professional) or vibe (fun)."
         },
-        "agentNotifier.httpResponseTimeoutMs": {
+        "bellsy.httpResponseTimeoutMs": {
           "type": "number",
           "default": 300000,
           "minimum": 1000,
           "description": "How long the HTTP transport waits for an allow or deny response."
         },
-        "agentNotifier.permissionReminderEnabled": {
+        "bellsy.permissionReminderEnabled": {
           "type": "boolean",
           "default": true,
           "description": "Show repeated in-editor reminders while permission requests remain unanswered."
         },
-        "agentNotifier.permissionReminderIntervalSeconds": {
+        "bellsy.permissionReminderIntervalSeconds": {
           "type": "number",
           "default": 30,
           "minimum": 5,

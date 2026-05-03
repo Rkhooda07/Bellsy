@@ -252,7 +252,7 @@ export class HttpTransport implements ITransport, IResponseTarget {
       }
 
       this.logger.warn(
-        `HTTP port ${preferredPort} is already in use. Pingly will use another available local port for this editor instance.`,
+        `HTTP port ${preferredPort} is already in use. Bellsy will use another available local port for this editor instance.`,
       );
       return this.listenOnPort(0);
     }

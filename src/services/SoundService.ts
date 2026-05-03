@@ -12,7 +12,8 @@ export type SoundMode = 'focus' | 'vibe';
 export function getSoundMode(): SoundMode {
   try {
     const vscode = require('vscode') as typeof import('vscode');
-    const mode = vscode.workspace.getConfiguration('pingly').get<string>('soundMode', DEFAULT_SOUND_MODE);
+    const config = vscode.workspace.getConfiguration('bellsy');
+    const mode = config.get<string>('soundMode', DEFAULT_SOUND_MODE);
     return mode === 'vibe' ? 'vibe' : 'focus';
   } catch {
     return 'focus';

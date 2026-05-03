@@ -11,7 +11,7 @@ export class StatusBarService implements vscode.Disposable {
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
-    this.item.command = 'agentNotifier.showPendingList';
+    this.item.command = 'bellsy.showPendingList';
     this.setIdle();
     this.item.show();
   }
@@ -39,8 +39,8 @@ export class StatusBarService implements vscode.Disposable {
 
     this.startPulse();
     this.item.text = this.pulseVisible
-      ? `$(bell-dot) Pingly approvals: ${this.pendingEvents.length}`
-      : `$(bell) Pingly approvals: ${this.pendingEvents.length}`;
+      ? `$(bell-dot) Bellsy approvals: ${this.pendingEvents.length}`
+      : `$(bell) Bellsy approvals: ${this.pendingEvents.length}`;
     this.item.color = new vscode.ThemeColor(
       this.pulseVisible ? 'statusBarItem.errorForeground' : 'statusBarItem.warningForeground',
     );
@@ -51,12 +51,12 @@ export class StatusBarService implements vscode.Disposable {
   }
 
   private setIdle(): void {
-    this.item.text = '$(check) Pingly Ready';
+    this.item.text = '$(check) Bellsy Ready';
     this.item.color = undefined;
     this.item.backgroundColor = undefined;
     this.item.tooltip = this.listeningEndpoint
-      ? `Pingly is listening for local agent events on ${this.listeningEndpoint}`
-      : 'Pingly is listening for local agent events';
+      ? `Bellsy is listening for local agent events on ${this.listeningEndpoint}`
+      : 'Bellsy is listening for local agent events';
   }
 
   setListeningEndpoint(endpoint: string | undefined): void {

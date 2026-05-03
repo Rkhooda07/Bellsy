@@ -38,30 +38,30 @@ export class SystemNotifService {
 
   async showPermissionRequest(message: string, critical = true): Promise<PermissionChoice | undefined> {
     if (os.platform() === 'darwin') {
-      await this.showMacNotification('Pingly - Permission Required', message, critical);
+      await this.showMacNotification('Bellsy - Permission Required', message, critical);
       return undefined;
     }
 
-    this.notifyGeneric('Pingly - Permission Required', message, 30, critical);
+    this.notifyGeneric('Bellsy - Permission Required', message, 30, critical);
     return undefined;
   }
 
   notifyCompletion(message: string, critical = false): void {
     if (os.platform() === 'darwin') {
-      void this.showMacNotification('Pingly - Task Completed', message, critical);
+      void this.showMacNotification('Bellsy - Task Completed', message, critical);
       return;
     }
 
-    this.notifyGeneric('Pingly - Task Completed', message, 10, critical);
+    this.notifyGeneric('Bellsy - Task Completed', message, 10, critical);
   }
 
   notifyAttention(message: string, critical = true): void {
     if (os.platform() === 'darwin') {
-      void this.showMacNotification('Pingly - Attention Required', message, critical);
+      void this.showMacNotification('Bellsy - Attention Required', message, critical);
       return;
     }
 
-    this.notifyGeneric('Pingly - Attention Required', message, 30, critical);
+    this.notifyGeneric('Bellsy - Attention Required', message, 30, critical);
   }
 
   private notifyGeneric(title: string, message: string, timeout: number, critical: boolean): void {

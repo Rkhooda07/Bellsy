@@ -24,7 +24,7 @@ import { HttpTransport } from './transport/HttpTransport';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const logger = new OutputChannelLogger();
-  const config = vscode.workspace.getConfiguration('agentNotifier');
+  const config = vscode.workspace.getConfiguration('bellsy');
   const notificationService = new NotificationService();
   const statusBarService = new StatusBarService();
   const dispatcher = new ResponseDispatcher();
@@ -158,17 +158,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await focusAgentSurface();
       },
     }),
-    vscode.commands.registerCommand('agentNotifier.showLogs', () => {
+    vscode.commands.registerCommand('bellsy.showLogs', () => {
       logger.show();
     }),
-    vscode.commands.registerCommand('agentNotifier.setupCursorWebhook', async () => {
+    vscode.commands.registerCommand('bellsy.setupLocalNotifications', async () => {
       await cursorSetupService.run();
     }),
-    vscode.commands.registerCommand('agentNotifier.testCursorWebhook', async () => {
+    vscode.commands.registerCommand('bellsy.testLocalNotifications', async () => {
       await cursorSetupService.testWebhook();
     }),
-    vscode.commands.registerCommand('pingly.toggleSoundMode', async () => {
-      const soundConfig = vscode.workspace.getConfiguration('pingly');
+    vscode.commands.registerCommand('bellsy.toggleSoundMode', async () => {
+      const soundConfig = vscode.workspace.getConfiguration('bellsy');
       const current = getSoundMode();
       const selection = await vscode.window.showQuickPick(
         [
@@ -184,7 +184,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           },
         ],
         {
-          title: 'Pingly: Sound Mode',
+          title: 'Bellsy: Sound Mode',
           placeHolder: 'Choose the sound style for completion and permission alerts',
           canPickMany: false,
         },
@@ -195,10 +195,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
 
       await soundConfig.update('soundMode', selection.mode, vscode.ConfigurationTarget.Global);
-      await vscode.window.showInformationMessage(`Pingly sound mode: ${selection.mode}`);
+      await vscode.window.showInformationMessage(`Bellsy sound mode: ${selection.mode}`);
       soundService.playTaskComplete();
     }),
-    vscode.commands.registerCommand('agentNotifier.showPendingList', async () => {
+    vscode.commands.registerCommand('bellsy.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();
 
       if (pendingEvents.length === 0) {
@@ -225,7 +225,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     },
   );
 
-  logger.info('Pingly activated');
+  logger.info('Bellsy activated');
 }
 
 export function deactivate(): void {}

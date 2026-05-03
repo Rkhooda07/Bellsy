@@ -11,10 +11,10 @@ if (!type || !message) {
 const payload = {
   type,
   message,
-  metadata: process.env.PINGLY_TOOL ? { tool: process.env.PINGLY_TOOL } : {},
+  metadata: process.env.BELLSY_TOOL ? { tool: process.env.BELLSY_TOOL } : {},
 };
 
-const endpoint = process.env.PINGLY_URL ?? 'http://127.0.0.1:9001/event';
+const endpoint = process.env.BELLSY_URL ?? 'http://127.0.0.1:9001/event';
 
 async function main() {
   const response = await fetch(endpoint, {

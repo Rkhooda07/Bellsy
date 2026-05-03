@@ -128,7 +128,7 @@ export class HostedRelayService implements vscode.Disposable {
 
   private async startInternal(): Promise<void> {
     if (!this.isConfigured()) {
-      this.logger.warn('Hosted relay is not configured. Set agentNotifier.relayBaseUrl to enable Cursor webhook relay mode.');
+      this.logger.warn('Hosted relay is not configured. Set bellsy.relayBaseUrl to enable Cursor webhook relay mode.');
       this.setStatus('offline');
       return;
     }

@@ -39,7 +39,7 @@ export class TransportFactory {
   }
 
   static fromWorkspace(logger: OutputChannelLogger): ITransport {
-    const config = vscode.workspace.getConfiguration('agentNotifier');
+    const config = vscode.workspace.getConfiguration('bellsy');
 
     return TransportFactory.create(
       {

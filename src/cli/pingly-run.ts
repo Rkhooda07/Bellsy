@@ -71,7 +71,7 @@ async function runWithPipes(
   });
 
   child.on('error', (error) => {
-    console.error(`[pingly-run] Failed to start ${plan.command}: ${error.message}`);
+    console.error(`[bellsy-run] Failed to start ${plan.command}: ${error.message}`);
     process.exitCode = 1;
   });
 
@@ -119,7 +119,7 @@ async function runWithTerminalCapture(
     await sessionMonitor?.stop();
     await poller.stop();
     await fs.rm(plan.logFilePath, { force: true });
-    console.error(`[pingly-run] Failed to start ${plan.command}: ${error.message}`);
+    console.error(`[bellsy-run] Failed to start ${plan.command}: ${error.message}`);
     process.exitCode = 1;
   });
 
@@ -136,11 +136,11 @@ async function runWithTerminalCapture(
 }
 
 function parseArgs(args: string[]): CliOptions {
-  let agent = process.env.PINGLY_AGENT ?? '';
-  let endpoint = process.env.PINGLY_URL ?? DEFAULT_ENDPOINT;
-  let allowInput = process.env.PINGLY_ALLOW_INPUT ?? 'y\n';
-  let denyInput = process.env.PINGLY_DENY_INPUT ?? 'n\n';
-  let ttyMode = (process.env.PINGLY_TTY_MODE as CliOptions['ttyMode'] | undefined) ?? 'auto';
+  let agent = process.env.BELLSY_AGENT ?? '';
+  let endpoint = process.env.BELLSY_URL ?? DEFAULT_ENDPOINT;
+  let allowInput = process.env.BELLSY_ALLOW_INPUT ?? 'y\n';
+  let denyInput = process.env.BELLSY_DENY_INPUT ?? 'n\n';
+  let ttyMode = (process.env.BELLSY_TTY_MODE as CliOptions['ttyMode'] | undefined) ?? 'auto';
   const commandSeparatorIndex = args.indexOf('--');
   const commandStartIndex = commandSeparatorIndex === -1 ? findCommandStartIndex(args) : commandSeparatorIndex + 1;
   const wrapperArgs = commandSeparatorIndex === -1 ? args.slice(0, commandStartIndex) : args.slice(0, commandSeparatorIndex);
@@ -243,7 +243,7 @@ function buildSpawnPlan(options: CliOptions): SpawnPlan {
   }
 
   if (os.platform() === 'darwin' || os.platform() === 'linux') {
-    const logFilePath = path.join(os.tmpdir(), `pingly-run-${Date.now()}-${Math.random().toString(16).slice(2)}.log`);
+    const logFilePath = path.join(os.tmpdir(), `bellsy-run-${Date.now()}-${Math.random().toString(16).slice(2)}.log`);
     return {
       kind: 'tty-log',
       command: 'script',
@@ -327,11 +327,11 @@ async function postEvent(
       correlationId,
       metadata: {
         confidence: event.confidence,
-        wrapper: 'pingly-run',
+        wrapper: 'bellsy-run',
       },
     }),
   }).catch((error: Error) => {
-    console.error(`[pingly-run] Failed to notify Pingly: ${error.message}`);
+    console.error(`[bellsy-run] Failed to notify Bellsy: ${error.message}`);
     return null;
   });
 
@@ -340,7 +340,7 @@ async function postEvent(
   }
 
   if (!response.ok) {
-    console.error(`[pingly-run] Notification failed: HTTP ${response.status}`);
+    console.error(`[bellsy-run] Notification failed: HTTP ${response.status}`);
     return null;
   }
 
@@ -375,7 +375,7 @@ function decodeInput(value: string): string {
 
 function printUsageAndExit(): never {
   console.error(
-    'Usage: pingly-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] [--tty auto|on|off] [--] <command> [...args]',
+    'Usage: bellsy-run [--agent name] [--endpoint url] [--allow-input value] [--deny-input value] [--tty auto|on|off] [--] <command> [...args]',
   );
   process.exit(1);
 }
@@ -411,7 +411,7 @@ function startLogPolling(filePath: string, onChunk: (chunk: string) => Promise<v
     } catch (error) {
       if (!stopped) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error(`[pingly-run] Failed to read terminal log: ${message}`);
+        console.error(`[bellsy-run] Failed to read terminal log: ${message}`);
       }
     }
   };
