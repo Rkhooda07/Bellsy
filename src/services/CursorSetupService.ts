@@ -28,7 +28,6 @@ export class CursorSetupService {
 
   async run(): Promise<void> {
     const endpoint = this.getLocalEndpoint() ?? 'http://127.0.0.1:9001/event';
-    const endpointPrefix = endpoint === 'http://127.0.0.1:9001/event' ? '' : `BELLSY_URL=${endpoint} `;
     const action = await vscode.window.showQuickPick(
       [
         { label: 'Copy Claude Code Wrapper', detail: `Start Claude Code through bellsy-run (${endpoint}).` },
@@ -49,19 +48,19 @@ export class CursorSetupService {
     }
 
     if (action.label === 'Copy Claude Code Wrapper') {
-      await vscode.env.clipboard.writeText(`${endpointPrefix}bellsy-run claude`);
+      await vscode.env.clipboard.writeText('bellsy-run claude');
       await vscode.window.showInformationMessage('Claude Code wrapper command copied.');
       return;
     }
 
     if (action.label === 'Copy Codex Wrapper') {
-      await vscode.env.clipboard.writeText(`${endpointPrefix}bellsy-run codex`);
+      await vscode.env.clipboard.writeText('bellsy-run codex');
       await vscode.window.showInformationMessage('Codex wrapper command copied.');
       return;
     }
 
     if (action.label === 'Copy Generic Wrapper') {
-      await vscode.env.clipboard.writeText(`${endpointPrefix}bellsy-run your-command-here`);
+      await vscode.env.clipboard.writeText('bellsy-run your-command-here');
       await vscode.window.showInformationMessage('Generic wrapper command copied.');
       return;
     }
@@ -81,7 +80,7 @@ export class CursorSetupService {
     if (action.label === 'Copy Setup Checklist') {
       const checklist = [
         '1. Install the extension and keep it open in Cursor, VS Code, or another VS Code-compatible editor.',
-        `2. Start your local tool through a wrapper like: ${endpointPrefix}bellsy-run claude`,
+        '2. Start your local tool through a wrapper like: bellsy-run claude',
         '3. Use Bellsy: Test Local Notifications to verify completion, error, and approval flows.',
         `4. Advanced scripts can post JSON directly to ${endpoint}.`,
         '5. Keep the terminal and the editor on the same machine or local network namespace.',
