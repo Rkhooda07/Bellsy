@@ -77,12 +77,9 @@ export class SystemNotifService {
 
   private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
     const senderBundleId = this.detectMacSenderBundleId();
-    const activateCommand = this.buildMacActivateCommand();
     const notificationOptions = {
       title,
       message,
-      sender: senderBundleId,
-      activate: senderBundleId,
       wait: true,
       timeout: critical ? 30 : 10,
     } as notifier.Notification & {
@@ -93,10 +90,18 @@ export class SystemNotifService {
       timeout?: number;
     };
 
+    if (senderBundleId) {
+      notificationOptions.sender = senderBundleId;
+      notificationOptions.activate = senderBundleId;
+    }
+
     if (this.clickOpenUrl) {
       notificationOptions.open = this.clickOpenUrl;
-    } else if (activateCommand) {
-      notificationOptions.execute = activateCommand;
+    } else {
+      const activateCommand = this.buildMacActivateCommand();
+      if (activateCommand) {
+        notificationOptions.execute = activateCommand;
+      }
     }
 
     return new Promise((resolve) => {
@@ -113,7 +118,7 @@ export class SystemNotifService {
     });
   }
 
-  private detectMacSenderBundleId(): string {
+  private detectMacSenderBundleId(): string | undefined {
     const signals = [
       this.hostAppName,
       process.env.VSCODE_CLI_APPNAME ?? '',
@@ -121,16 +126,16 @@ export class SystemNotifService {
       process.execPath,
     ].join(' ');
 
+    if (signals.includes('Cursor')) {
+      return undefined;
+    }
+
     if (signals.includes('Code - Insiders')) {
       return 'com.microsoft.VSCodeInsiders';
     }
 
     if (signals.includes('VSCodium')) {
       return 'com.vscodium';
-    }
-
-    if (signals.includes('Cursor')) {
-      return 'com.todesktop.230313mzl4w4u92';
     }
 
     return 'com.microsoft.VSCode';

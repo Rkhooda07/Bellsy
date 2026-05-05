@@ -4,6 +4,13 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { SoundService } = require('../../out/services/SoundService');
+const { DEFAULT_SOUND_MODE } = require('../../out/core/constants');
+const packageManifest = require('../../package.json');
+
+test('sound mode defaults to focus in code and extension configuration', () => {
+  assert.equal(DEFAULT_SOUND_MODE, 'focus');
+  assert.equal(packageManifest.contributes.configuration.properties['bellsy.soundMode'].default, 'focus');
+});
 
 test('macOS focus mode keeps using the current permission sound file', () => {
   const originalPlatform = os.platform;
