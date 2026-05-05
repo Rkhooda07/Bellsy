@@ -47,7 +47,7 @@
   "bin": {
     "bellsy-run": "./out/cli/bellsy-run.js"
   },
-  "icon": "assets/icon.png",
+  "icon": "assets/Maybelogo.png",
   "contributes": {
     "commands": [
       {
