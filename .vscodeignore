@@ -14,7 +14,7 @@ relay/**
 out/relay/**
 out/simulation/**
 out/cli/pingly-run.*
-assets/MaybeFinalLogo.png
+assets/Maybelogo.png
 assets/maybeLogo2.O.png
 node_modules/**
 !node_modules/node-notifier/**
