@@ -141,7 +141,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const message = error instanceof Error ? error.message : String(error);
     logger.error(`Activation failed while starting transport: ${message}`);
     logger.show();
-    await notificationService.showError(`Failed to start AI Agent Notifier: ${message}`);
+    await notificationService.showError(`Failed to start Bellsy: ${message}`);
     throw error;
   }
 

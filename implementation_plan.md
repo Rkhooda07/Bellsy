@@ -1,4 +1,4 @@
-# 🤖 AI Agent Notifier — VS Code Extension
+# 🤖 Bellsy — VS Code Extension
 ## Complete Implementation Blueprint
 
 > **Purpose:** Real-time attention and notification system for AI agents — not a chatbot, not a dashboard. Pure signal.
@@ -353,7 +353,7 @@ export class StatusBarService {
       vscode.StatusBarAlignment.Right,
       1000
     );
-    this.item.command = 'agentNotifier.showPendingList';
+    this.item.command = 'bellsy.showPendingList';
     this.setIdle();
     this.item.show();
   }
@@ -369,9 +369,9 @@ export class StatusBarService {
   }
 
   private setIdle(): void {
-    this.item.text    = `$(check) AI Agent Ready`;
+    this.item.text    = `$(check) Bellsy Ready`;
     this.item.color   = undefined;
-    this.item.tooltip = 'AI Agent Notifier — Listening';
+    this.item.tooltip = 'Bellsy — Listening';
   }
 
   dispose(): void {
@@ -618,7 +618,7 @@ export class HttpTransport implements ITransport {
 
 - **Permission Alert:** Full amplitude — user **must** hear it
 - **Task Complete:** Encode sound file at −12dB relative to permission alert
-- **User Override:** Add setting `agentNotifier.soundEnabled` (boolean) and `agentNotifier.soundVolume` (0–100, macOS only via `afplay -v`)
+- **User Override:** Add setting `bellsy.soundEnabled` (boolean) and `bellsy.soundVolume` (0–100, macOS only via `afplay -v`)
 
 ---
 
@@ -661,14 +661,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   // 3. Start transport
-  const config    = vscode.workspace.getConfiguration('agentNotifier');
+  const config    = vscode.workspace.getConfiguration('bellsy');
   const transport = TransportFactory.create(config);
   transport.onEvent(event => EventBus.emit(event.type, event));
   await transport.start();
 
   // 4. Register commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('agentNotifier.simulatePermission', () => {
+    vscode.commands.registerCommand('bellsy.simulatePermission', () => {
       EventBus.emit(AgentEventType.PERMISSION_REQUIRED, {
         id: Date.now().toString(),
         type: AgentEventType.PERMISSION_REQUIRED,
@@ -676,7 +676,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         timestamp: Date.now(),
       });
     }),
-    vscode.commands.registerCommand('agentNotifier.simulateComplete', () => {
+    vscode.commands.registerCommand('bellsy.simulateComplete', () => {
       EventBus.emit(AgentEventType.TASK_COMPLETED, {
         id: Date.now().toString(),
         type: AgentEventType.TASK_COMPLETED,
@@ -698,8 +698,8 @@ export function deactivate(): void {}
 
 ```json
 {
-  "name": "ai-agent-notifier",
-  "displayName": "AI Agent Notifier",
+  "name": "bellsy",
+  "displayName": "Bellsy",
   "description": "Instant alerts when your AI agent needs attention or completes a task",
   "version": "0.1.0",
   "engines": { "vscode": "^1.85.0" },
@@ -707,16 +707,16 @@ export function deactivate(): void {}
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "agentNotifier.simulatePermission", "title": "AI Notifier: Simulate Permission Request" },
-      { "command": "agentNotifier.simulateComplete",  "title": "AI Notifier: Simulate Task Completed" }
+      { "command": "bellsy.simulatePermission", "title": "Bellsy: Simulate Permission Request" },
+      { "command": "bellsy.simulateComplete",  "title": "Bellsy: Simulate Task Completed" }
     ],
     "configuration": {
-      "title": "AI Agent Notifier",
+      "title": "Bellsy",
       "properties": {
-        "agentNotifier.transport":     { "type": "string", "enum": ["file","http"], "default": "http" },
-        "agentNotifier.httpPort":      { "type": "number", "default": 9001 },
-        "agentNotifier.watchFilePath": { "type": "string", "default": "/tmp/agent_event.json" },
-        "agentNotifier.soundEnabled":  { "type": "boolean", "default": true }
+        "bellsy.transport":     { "type": "string", "enum": ["file","http"], "default": "http" },
+        "bellsy.httpPort":      { "type": "number", "default": 9001 },
+        "bellsy.watchFilePath": { "type": "string", "default": "/tmp/agent_event.json" },
+        "bellsy.soundEnabled":  { "type": "boolean", "default": true }
       }
     }
   },

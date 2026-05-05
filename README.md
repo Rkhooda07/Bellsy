@@ -54,7 +54,7 @@ For any other command:
 bellsy-run your-command-here
 ```
 
-If Bellsy has to use a fallback port, the setup command copies the right endpoint automatically:
+If Bellsy has to use a fallback port, the status bar shows the live endpoint. Advanced scripts can still target it with `BELLSY_URL`:
 
 ```bash
 BELLSY_URL=http://127.0.0.1:PORT/event bellsy-run codex

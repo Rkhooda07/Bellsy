@@ -104,7 +104,7 @@ test('finds matching codex session files even when session_meta exceeds 8kb', as
       payload: {
         id: 'session_123',
         timestamp: '2026-04-29T09:20:28.813Z',
-        cwd: '/Users/rkhooda/Desktop/Coding/Projects/Pingly',
+        cwd: '/Users/rkhooda/Desktop/Coding/Projects/Bellsy',
         originator: 'codex-tui',
         base_instructions: { text: oversizedInstructions },
       },
@@ -115,7 +115,7 @@ test('finds matching codex session files even when session_meta exceeds 8kb', as
     const monitor = new CodexSessionMonitor(
       {
         sessionsRoot: tempRoot,
-        cwd: '/Users/rkhooda/Desktop/Coding/Projects/Pingly',
+        cwd: '/Users/rkhooda/Desktop/Coding/Projects/Bellsy',
         startedAtMs: startedAt,
         agent: 'codex',
       },
