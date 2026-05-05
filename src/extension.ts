@@ -190,13 +190,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         },
       );
 
-      if (!selection || selection.mode === current) {
+      if (!selection) {
         return;
       }
 
-      await soundConfig.update('soundMode', selection.mode, vscode.ConfigurationTarget.Global);
-      await vscode.window.showInformationMessage(`Bellsy sound mode: ${selection.mode}`);
-      soundService.playTaskComplete();
+      if (selection.mode !== current) {
+        await soundConfig.update('soundMode', selection.mode, vscode.ConfigurationTarget.Global);
+      }
+
+      soundService.playTaskCompletePreview(selection.mode);
+      if (selection.mode !== current) {
+        void vscode.window.showInformationMessage(`Bellsy sound mode: ${selection.mode}`);
+      }
     }),
     vscode.commands.registerCommand('bellsy.showPendingList', async () => {
       const pendingEvents = permissionManager.getPendingEvents();

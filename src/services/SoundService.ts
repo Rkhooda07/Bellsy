@@ -22,14 +22,17 @@ export function getSoundMode(): SoundMode {
 
 export class SoundService {
   private readonly soundsPaths: readonly string[];
+  private readonly runCommand: (command: string, onError: (error: Error | null) => void) => void;
 
   constructor(
     soundsPath: string | readonly string[],
     private readonly soundEnabled: boolean,
     private readonly volume: number,
     private readonly readSoundMode: () => SoundMode = getSoundMode,
+    runCommand?: (command: string, onError: (error: Error | null) => void) => void,
   ) {
     this.soundsPaths = Array.isArray(soundsPath) ? soundsPath : [soundsPath];
+    this.runCommand = runCommand ?? ((command, onError) => exec(command, onError));
   }
 
   playPermissionAlert(): void {
@@ -40,28 +43,36 @@ export class SoundService {
     this.play('completed');
   }
 
-  private play(kind: 'permission' | 'completed'): void {
+  playTaskCompletePreview(mode: SoundMode): void {
+    this.play('completed', mode, true);
+  }
+
+  resolveTaskCompleteSoundPath(mode: SoundMode = this.readSoundMode()): string | undefined {
+    return this.resolveSoundPath(SOUND_FILES[mode].completed);
+  }
+
+  private play(kind: 'permission' | 'completed', modeOverride?: SoundMode, immediate = false): void {
     if (!this.soundEnabled) {
       return;
     }
 
-    const mode = this.readSoundMode();
+    const mode = modeOverride ?? this.readSoundMode();
     const filenames = SOUND_FILES[mode][kind];
-    const fullPath = this.resolveSoundPath(filenames);
+    const fullPath = kind === 'completed' ? this.resolveTaskCompleteSoundPath(mode) : this.resolveSoundPath(filenames);
     const command = this.buildCommand(fullPath);
     if (!command) {
       return;
     }
 
     const runPlayback = (): void => {
-      exec(command, (error) => {
+      this.runCommand(command, (error) => {
         if (error) {
           console.error(`[SoundService] Failed to play ${filenames[0]}: ${error.message}`);
         }
       });
     };
 
-    if (os.platform() === 'darwin') {
+    if (os.platform() === 'darwin' && !immediate) {
       setTimeout(runPlayback, MACOS_NOTIFICATION_SYNC_DELAY_MS);
       return;
     }

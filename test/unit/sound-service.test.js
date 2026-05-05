@@ -88,6 +88,39 @@ test('vibe mode maps completion to the reserved task_complete sound', () => {
   assert.equal(resolvedPath, path.join('/tmp/sounds', 'task_complete.wav'));
 });
 
+test('completion preview can target a selected mode without changing the configured mode reader', () => {
+  const service = new SoundService('/tmp/sounds', true, 45, () => 'focus');
+
+  assert.equal(service.resolveTaskCompleteSoundPath('focus'), path.join('/tmp/sounds', 'completion.wav'));
+  assert.equal(service.resolveTaskCompleteSoundPath('vibe'), path.join('/tmp/sounds', 'task_complete.wav'));
+});
+
+test('macOS completion preview runs immediately without notification sync delay', () => {
+  const originalPlatform = os.platform;
+  os.platform = () => 'darwin';
+  const calls = [];
+
+  try {
+    const service = new SoundService(
+      path.resolve(__dirname, '../../sounds'),
+      true,
+      45,
+      () => 'focus',
+      (command, onError) => {
+        calls.push(command);
+        onError(null);
+      },
+    );
+
+    service.playTaskCompletePreview('vibe');
+
+    assert.equal(calls.length, 1);
+    assert.match(calls[0], /task_complete\.wav/);
+  } finally {
+    os.platform = originalPlatform;
+  }
+});
+
 test('vibe mode maps permissions to the reserved permission_alert sound', () => {
   const service = new SoundService('/tmp/sounds', true, 45, () => 'vibe');
   const resolvedPath = service.resolveSoundPath(['permission_alert.wav']);
