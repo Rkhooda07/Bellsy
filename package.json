@@ -127,7 +127,9 @@
     }
   },
   "scripts": {
-    "build": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "bundle": "node tools/bundle.js",
+    "build": "npm run compile && npm run bundle",
     "vscode:prepublish": "npm run build",
     "pretest": "npm run build",
     "test": "node --test test/unit/*.test.js",
@@ -146,6 +148,7 @@
     "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.0",
     "typescript": "^5.4.5"
   }
 }
