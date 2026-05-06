@@ -137,6 +137,9 @@
     "package": "vsce package",
     "package:verify": "npm test && npm run package"
   },
+  "vsce": {
+    "baseImagesUrl": "https://raw.githubusercontent.com/Rkhooda07/Bellsy/main"
+  },
   "dependencies": {
     "node-notifier": "^10.0.1",
     "uuid": "^9.0.1"

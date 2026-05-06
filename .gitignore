@@ -3,3 +3,5 @@ out
 *.vsix
 .DS_Store
 docs/build-journey-video-script.md
+assets/GIF1.mp4
+assets/GIF2.mov
