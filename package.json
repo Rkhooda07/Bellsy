@@ -138,7 +138,7 @@
     "package:verify": "npm test && npm run package"
   },
   "vsce": {
-    "baseImagesUrl": "https://raw.githubusercontent.com/Rkhooda07/Bellsy/main"
+    "baseImagesUrl": "https://raw.githubusercontent.com/Rkhooda07/Bellsy/499ce31"
   },
   "dependencies": {
     "node-notifier": "^10.0.1",
