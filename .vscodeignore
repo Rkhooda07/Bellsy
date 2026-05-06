@@ -25,6 +25,7 @@ assets/Maybelogo.png
 assets/maybeLogo2.O.png
 assets/GIF1.mp4
 assets/GIF2.mov
+assets/readme-logo.png
 node_modules/**
 !node_modules/node-notifier/**
 !node_modules/node-notifier/node_modules/**

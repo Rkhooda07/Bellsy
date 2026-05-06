@@ -1,7 +1,5 @@
 # Bellsy 🔔
 
-![Bellsy Logo](assets/readme-logo.png)
-
 ![VS Code](https://img.shields.io/badge/VS%20Code-Extension-2F80ED?style=for-the-badge&logo=visualstudiocode&logoColor=white)
 ![Local First](https://img.shields.io/badge/Local-First-0F766E?style=for-the-badge)
 ![Codex + Claude + Cursor](https://img.shields.io/badge/Codex%20%2B%20Claude%20%2B%20Cursor-Supported-111827?style=for-the-badge)
