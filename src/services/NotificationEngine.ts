@@ -9,7 +9,7 @@ type PermissionChoice = 'Allow' | 'Deny';
 
 export class NotificationEngine {
   constructor(
-    private readonly notificationService: NotificationService,
+    private readonly notificationService: NotificationService | null,
     private readonly systemNotifService: SystemNotifService,
     private readonly soundService: SoundService,
     private readonly logger: OutputChannelLogger,
@@ -36,7 +36,7 @@ export class NotificationEngine {
         resolve(choice);
       };
 
-      void this.notificationService.showPermissionRequest(this.formatMessage(event)).then(settle).catch(() => undefined);
+      void this.notificationService?.showPermissionRequest(this.formatMessage(event)).then(settle).catch(() => undefined);
       void this.systemNotifService
         .showPermissionRequest(this.formatMessage(event), critical)
         .then(settle)
@@ -55,8 +55,7 @@ export class NotificationEngine {
         `(focused=${this.isFocused()}, critical=${critical})`,
     );
 
-    void this.notificationService
-      .showTaskCompleted(this.formatMessage(event))
+    void this.notificationService?.showTaskCompleted(this.formatMessage(event))
       .then((action) => this.handleNotificationAction(action), () => undefined);
     this.systemNotifService.notifyCompletion(this.formatMessage(event), critical);
 
@@ -72,8 +71,7 @@ export class NotificationEngine {
         `(focused=${this.isFocused()}, critical=${critical})`,
     );
 
-    void this.notificationService
-      .showAttentionRequired(this.formatMessage(event))
+    void this.notificationService?.showAttentionRequired(this.formatMessage(event))
       .then((action) => this.handleNotificationAction(action), () => undefined);
     this.systemNotifService.notifyAttention(this.formatMessage(event), critical);
 
