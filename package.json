@@ -55,6 +55,13 @@
   "bin": {
     "bellsy-run": "./out/cli/bellsy-run.js"
   },
+  "files": [
+    "out",
+    "sounds",
+    "assets",
+    "README.md",
+    "LICENSE"
+  ],
   "icon": "assets/MaybeFinalLogo.png",
   "contributes": {
     "commands": [
