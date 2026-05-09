@@ -36,27 +36,129 @@ type SpawnPlan =
     };
 
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:9001/event';
+const DEFAULT_SERVER_PORT = 9001;
+const SERVER_START_TIMEOUT_MS = 5_000;
+const GEMINI_HOOK_EXTENSION_NAME = 'bellsy-notifications';
+const GEMINI_AFTER_AGENT_HOOK_SCRIPT = `#!/usr/bin/env node
+const http = require('node:http');
+const https = require('node:https');
+
+let input = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  input += chunk;
+});
+process.stdin.on('end', () => {
+  void main();
+});
+
+async function main() {
+  try {
+    const payload = input.trim() ? JSON.parse(input) : {};
+    const endpoint = process.env.BELLSY_URL || 'http://127.0.0.1:9001/event';
+    const agent = process.env.BELLSY_AGENT || 'gemini';
+    await postJson(endpoint, {
+      type: 'task_completed',
+      source: 'cli',
+      priority: 'low',
+      agent,
+      message: formatMessage(agent, payload.prompt_response),
+      correlationId: buildCorrelationId(payload),
+      metadata: {
+        confidence: 'high',
+        wrapper: 'bellsy-run',
+        integration: 'gemini-after-agent-hook',
+      },
+    });
+  } catch {
+  } finally {
+    process.stdout.write('{"suppressOutput":true}\\n');
+  }
+}
+
+function formatMessage(agent, response) {
+  const summary = summarize(response);
+  return summary ? agent + ': ' + summary : agent + ': Response completed';
+}
+
+function summarize(response) {
+  if (typeof response !== 'string') {
+    return '';
+  }
+
+  const line = response
+    .split(/\\r?\\n/)
+    .map((entry) => entry.trim())
+    .find((entry) => entry.length > 0 && !entry.startsWith(String.fromCharCode(96, 96, 96)));
+
+  if (!line) {
+    return '';
+  }
+
+  return line.length > 120 ? line.slice(0, 117) + '...' : line;
+}
+
+function buildCorrelationId(payload) {
+  const sessionId = typeof payload.session_id === 'string' ? payload.session_id : process.env.BELLSY_RUN_ID || 'unknown';
+  const timestamp = typeof payload.timestamp === 'string' ? payload.timestamp : String(Date.now());
+  return 'gemini-after-agent:' + sessionId + ':' + timestamp;
+}
+
+function postJson(endpoint, body) {
+  return new Promise((resolve) => {
+    let url;
+    try {
+      url = new URL(endpoint);
+    } catch {
+      resolve();
+      return;
+    }
+
+    const data = Buffer.from(JSON.stringify(body));
+    const client = url.protocol === 'https:' ? https : http;
+    const request = client.request(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': String(data.length),
+        },
+        timeout: 2500,
+      },
+      (response) => {
+        response.resume();
+        response.on('end', resolve);
+      },
+    );
+
+    request.on('error', resolve);
+    request.on('timeout', () => {
+      request.destroy();
+      resolve();
+    });
+    request.end(data);
+  });
+}
+`;
 
 async function main(): Promise<void> {
   if (process.argv.includes('--serve')) {
-    const server = new StandaloneServer(9001, path.join(__dirname, '..', '..'));
+    const server = new StandaloneServer(parseServePort(process.argv.slice(2)), path.join(__dirname, '..', '..'));
     await server.start();
     return;
   }
 
   const options = parseArgs(process.argv.slice(2));
 
-  // Auto-start server if not running
-  const isServerRunning = await checkPort(9001);
-  if (!isServerRunning) {
-    startBackgroundServer();
-    // Give it a moment to start up
-    await new Promise(resolve => setTimeout(resolve, 800));
-  }
+  await ensureStandaloneServer(options.endpoint);
 
   const detector = new PatternDetector({ agent: options.agent });
   const plan = buildSpawnPlan(options);
   const runId = randomUUID();
+  if (shouldInstallGeminiHook(options)) {
+    await ensureGeminiHookExtension();
+  }
 
   if (plan.kind === 'tty-log') {
     await runWithTerminalCapture(plan, detector, options, runId);
@@ -80,14 +182,57 @@ async function checkPort(port: number): Promise<boolean> {
   });
 }
 
-function startBackgroundServer(): void {
+async function ensureStandaloneServer(endpoint: string): Promise<void> {
+  const port = endpointPort(endpoint);
+  if (!port) {
+    return;
+  }
+
+  if (await checkPort(port)) {
+    return;
+  }
+
+  startBackgroundServer(port);
+
+  const started = await waitForPort(port, SERVER_START_TIMEOUT_MS);
+  if (!started) {
+    console.error(
+      `[bellsy-run] Bellsy notification server did not start on 127.0.0.1:${port}. ` +
+        'The wrapped command will still run, but notifications may not appear.',
+    );
+  }
+}
+
+function startBackgroundServer(port: number): void {
   const scriptPath = __filename;
-  const child = spawn(process.execPath, [scriptPath, '--serve'], {
+  const child = spawn(process.execPath, [scriptPath, '--serve', '--port', String(port)], {
     detached: true,
     stdio: 'ignore',
     env: { ...process.env, BELLSY_BACKGROUND: 'true' }
   });
   child.unref();
+}
+
+function childEnv(options: CliOptions, runId: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    BELLSY_URL: options.endpoint,
+    BELLSY_AGENT: options.agent,
+    BELLSY_RUN_ID: runId,
+  };
+}
+
+async function waitForPort(port: number, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await checkPort(port)) {
+      return true;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  return false;
 }
 
 async function runWithPipes(
@@ -98,7 +243,7 @@ async function runWithPipes(
 ): Promise<void> {
   const child = spawn(plan.command, plan.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: process.env,
+    env: childEnv(options, runId),
   });
 
   child.stdout.on('data', (chunk: Buffer) => {
@@ -134,7 +279,7 @@ async function runWithTerminalCapture(
 
   const child = spawn(plan.command, plan.args, {
     stdio: 'inherit',
-    env: process.env,
+    env: childEnv(options, runId),
   });
 
   const poller = startLogPolling(plan.logFilePath, async (chunk) => {
@@ -243,6 +388,101 @@ function parseArgs(args: string[]): CliOptions {
   };
 }
 
+function parseServePort(args: string[]): number {
+  const portIndex = args.indexOf('--port');
+  if (portIndex === -1) {
+    return DEFAULT_SERVER_PORT;
+  }
+
+  const value = Number(args[portIndex + 1]);
+  if (!Number.isInteger(value) || value < 1 || value > 65535) {
+    console.error('Usage: bellsy-run --serve [--port port]');
+    process.exit(1);
+  }
+
+  return value;
+}
+
+function endpointPort(endpoint: string): number | null {
+  try {
+    const url = new URL(endpoint);
+    if (url.protocol !== 'http:') {
+      return null;
+    }
+
+    if (url.hostname !== '127.0.0.1' && url.hostname !== 'localhost' && url.hostname !== '[::1]') {
+      return null;
+    }
+
+    return url.port ? Number(url.port) : 80;
+  } catch {
+    return null;
+  }
+}
+
+function shouldInstallGeminiHook(options: CliOptions): boolean {
+  return /^gemini$/i.test(options.agent) || path.basename(options.command).toLowerCase() === 'gemini';
+}
+
+async function ensureGeminiHookExtension(): Promise<void> {
+  const extensionDir = path.join(os.homedir(), '.gemini', 'extensions', GEMINI_HOOK_EXTENSION_NAME);
+  const hooksDir = path.join(extensionDir, 'hooks');
+  await fs.mkdir(hooksDir, { recursive: true });
+
+  await writeFileIfChanged(
+    path.join(extensionDir, 'gemini-extension.json'),
+    `${JSON.stringify(
+      {
+        name: GEMINI_HOOK_EXTENSION_NAME,
+        version: '1.0.0',
+        description: 'Bellsy notification bridge for Gemini CLI turns.',
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  await writeFileIfChanged(
+    path.join(extensionDir, '.gemini-extension-install.json'),
+    `${JSON.stringify({ type: 'local', source: extensionDir }, null, 2)}\n`,
+  );
+
+  await writeFileIfChanged(
+    path.join(hooksDir, 'hooks.json'),
+    `${JSON.stringify(
+      {
+        hooks: {
+          AfterAgent: [
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  name: 'bellsy-after-agent',
+                  command: 'node ${extensionPath}/after-agent.js',
+                  timeout: 5_000,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  await writeFileIfChanged(path.join(extensionDir, 'after-agent.js'), GEMINI_AFTER_AGENT_HOOK_SCRIPT);
+}
+
+async function writeFileIfChanged(filePath: string, content: string): Promise<void> {
+  const current = await fs.readFile(filePath, 'utf8').catch(() => null);
+  if (current === content) {
+    return;
+  }
+
+  await fs.writeFile(filePath, content, { mode: 0o644 });
+}
+
 function findCommandStartIndex(args: string[]): number {
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -294,7 +534,7 @@ function buildSpawnPlan(options: CliOptions): SpawnPlan {
     return {
       kind: 'tty-log',
       command: 'script',
-      args: ['-q', logFilePath, options.command, ...options.args],
+      args: buildScriptArgs(logFilePath, options.command, options.args),
       logFilePath,
     };
   }
@@ -317,6 +557,14 @@ function shouldWrapInTerminal(options: CliOptions): boolean {
 
   const agents = /^(codex|claude|claude-code|gemini|blackbox)$/i;
   return agents.test(options.command) || agents.test(options.agent);
+}
+
+function buildScriptArgs(logFilePath: string, command: string, args: string[]): string[] {
+  if (os.platform() === 'darwin') {
+    return ['-q', '-F', logFilePath, command, ...args];
+  }
+
+  return ['-q', '-f', logFilePath, command, ...args];
 }
 
 function shouldMonitorCodexSession(options: CliOptions): boolean {

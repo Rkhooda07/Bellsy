@@ -17,7 +17,8 @@ type DetectorOptions = {
   now?: () => number;
 };
 
-const ANSI_PATTERN = /\u001b\[[0-?]*[ -/]*[@-~]/g;
+const ANSI_PATTERN = /\u001b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001b\\)|[=>])/g;
+const BACKSPACE_PATTERN = /[^\u0008]\u0008/g;
 const DEFAULT_PERMISSION_PATTERNS = [
   /\bwaiting for confirmation\b/i,
   /\bpermission required\b/i,
@@ -32,9 +33,12 @@ const DEFAULT_COMPLETION_PATTERNS = [
   /\btask finished\b/i,
   /\bcompleted successfully\b/i,
   /\bresponse finished\b/i,
+  /\bresponse complete(?:d)?\b/i,
   /\bfinished generating\b/i,
   /\bgeneration complete\b/i,
-  /(?:^|\s)done[.!]?\s*$/i,
+  /\bgenerat(?:ion|ing) (?:is )?(?:complete|finished)\b/i,
+  /\bturn (?:complete|finished)\b/i,
+  /(?:^|[\r\n\s])done[.!]?(?:[\r\n\s]|$)/i,
 ];
 const DEFAULT_FAILURE_PATTERNS = [
   /\berror\b/i,
@@ -43,6 +47,18 @@ const DEFAULT_FAILURE_PATTERNS = [
   /\bneeds attention\b/i,
   /\bexited with code\b/i,
 ];
+const ACTIVITY_PATTERNS = [
+  /\bgenerating(?: response)?\b/i,
+  /\bthinking\b/i,
+  /\bprocessing\b/i,
+  /(?:^|[\r\n])\s*(?:[✦●⏺◆◇▪■]|blackbox\s*:|gemini\s*:|claude\s*:)\s+/i,
+];
+const RETURNED_TO_PROMPT_PATTERNS = [
+  /(?:^|[\r\n])\s*(?:[│┃|]\s*)?>\s*$/m,
+  /(?:^|[\r\n])\s*(?:[│┃|]\s*)?(?:ask|message|prompt)\s*>?\s*$/im,
+  /(?:^|[\r\n])\s*(?:╭|┌|[│┃|]).{0,80}>\s*$/m,
+];
+const TUI_AGENT_PATTERN = /^(claude|claude-code|gemini|blackbox)$/i;
 
 export class PatternDetector {
   private readonly permissionPatterns: RegExp[];
@@ -51,7 +67,9 @@ export class PatternDetector {
   private readonly cooldownMs: number;
   private readonly now: () => number;
   private buffer = '';
+  private sawAgentActivity = false;
   private readonly lastEmitted = new Map<string, number>();
+  private readonly emittedTypes = new Set<AgentEventType>();
 
   constructor(private readonly options: DetectorOptions = {}) {
     this.permissionPatterns = options.permissionPatterns ?? DEFAULT_PERMISSION_PATTERNS;
@@ -64,6 +82,11 @@ export class PatternDetector {
   ingest(chunk: string): DetectedCliEvent[] {
     const clean = this.stripAnsi(chunk);
     this.buffer = `${this.buffer}${clean}`.slice(-8192);
+    const recentText = this.recentText(clean);
+
+    if (this.matches(ACTIVITY_PATTERNS, recentText)) {
+      this.sawAgentActivity = true;
+    }
 
     const events: DetectedCliEvent[] = [];
     if (this.matches(this.permissionPatterns, this.buffer) && this.canEmit(AgentEventType.PERMISSION_REQUIRED)) {
@@ -75,16 +98,23 @@ export class PatternDetector {
       });
     }
 
-    if (this.matches(this.completionPatterns, this.recentLine()) && this.canEmit(AgentEventType.TASK_COMPLETED)) {
+    if (
+      (
+        this.matches(this.completionPatterns, recentText) ||
+        (this.shouldDetectPromptReturn() && this.matches(RETURNED_TO_PROMPT_PATTERNS, this.recentLine()))
+      ) &&
+      this.canEmit(AgentEventType.TASK_COMPLETED)
+    ) {
+      this.sawAgentActivity = false;
       events.push({
         type: AgentEventType.TASK_COMPLETED,
-        message: this.formatMessage('Task finished'),
+        message: this.formatMessage('Response completed'),
         priority: AgentEventPriority.LOW,
         confidence: 'medium',
       });
     }
 
-    if (this.matches(this.failurePatterns, this.recentLine()) && this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
+    if (this.matches(this.failurePatterns, recentText) && this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
       events.push({
         type: AgentEventType.ATTENTION_REQUIRED,
         message: this.formatMessage('Task needs attention'),
@@ -98,7 +128,7 @@ export class PatternDetector {
 
   onExit(exitCode: number | null): DetectedCliEvent[] {
     if (exitCode === 0) {
-      if (!this.canEmit(AgentEventType.TASK_COMPLETED)) {
+      if (this.emittedTypes.has(AgentEventType.TASK_COMPLETED) || !this.canEmit(AgentEventType.TASK_COMPLETED)) {
         return [];
       }
 
@@ -112,7 +142,7 @@ export class PatternDetector {
       ];
     }
 
-    if (!this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
+    if (this.emittedTypes.has(AgentEventType.ATTENTION_REQUIRED) || !this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
       return [];
     }
 
@@ -127,7 +157,12 @@ export class PatternDetector {
   }
 
   private stripAnsi(value: string): string {
-    return value.replace(ANSI_PATTERN, '');
+    let clean = value.replace(ANSI_PATTERN, '');
+    while (clean.includes('\u0008')) {
+      clean = clean.replace(BACKSPACE_PATTERN, '');
+    }
+
+    return clean;
   }
 
   private matches(patterns: RegExp[], value: string): boolean {
@@ -135,8 +170,17 @@ export class PatternDetector {
   }
 
   private recentLine(): string {
-    const lines = this.buffer.split(/\r?\n/).filter((line) => line.trim().length > 0);
+    const lines = this.buffer.split(/[\r\n]/).filter((line) => line.trim().length > 0);
     return lines.at(-1) ?? this.buffer;
+  }
+
+  private recentText(chunk: string): string {
+    const lines = this.buffer.split(/[\r\n]/).filter((line) => line.trim().length > 0);
+    return `${chunk}\n${lines.slice(-6).join('\n')}`.slice(-4096);
+  }
+
+  private shouldDetectPromptReturn(): boolean {
+    return this.sawAgentActivity && TUI_AGENT_PATTERN.test(this.options.agent ?? '');
   }
 
   private canEmit(type: AgentEventType): boolean {
@@ -148,6 +192,7 @@ export class PatternDetector {
     }
 
     this.lastEmitted.set(key, currentTime);
+    this.emittedTypes.add(type);
     return true;
   }
 
