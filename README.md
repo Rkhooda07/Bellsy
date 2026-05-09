@@ -2,13 +2,13 @@
 
 ![VS Code](https://img.shields.io/badge/VS%20Code-Extension-2F80ED?style=for-the-badge&logo=visualstudiocode&logoColor=white)
 ![Local First](https://img.shields.io/badge/Local-First-0F766E?style=for-the-badge)
-![Codex + Claude + Cursor](https://img.shields.io/badge/Codex%20%2B%20Claude%20%2B%20Cursor-Supported-111827?style=for-the-badge)
+![Codex + Gemini + Claude](https://img.shields.io/badge/Codex%20%2B%20Gemini%20%2B%20Claude-Supported-111827?style=for-the-badge)
 
 > **Stop babysitting your terminal.**
 >
 > Bellsy notifies you when local coding agents, scripts, and CLI tasks finish, fail, or need approval.
 
-Perfect for **Codex CLI**, **Claude Code**, **Cursor**, build commands, test runs, and long-running local workflows.
+Perfect for **Codex CLI**, **Gemini CLI**, **Claude Code**, **Blackbox**, **Cursor**, build commands, test runs, and long-running local workflows.
 
 ## ✨ Why Bellsy?
 
@@ -24,6 +24,8 @@ Bellsy adds the missing attention layer so you can stay in flow instead of repea
 
 ## 🚀 What You Get
 
+- ⚡ One-command global CLI wrapper: `bellsy-run gemini`, `bellsy-run codex`, `bellsy-run claude`
+- 🧭 Automatic local notification server startup
 - 🔔 In-editor notification popups
 - 🖥️ Native system notifications
 - 🔊 Bundled sounds for completion and approval alerts
@@ -46,25 +48,20 @@ Bellsy adds the missing attention layer so you can stay in flow instead of repea
 
 This preview shows the main Bellsy flow from setup to completion notification.
 
-![Bellsy workflow demo](assets/workflow-demo.gif)
+![Bellsy workflow demo](https://raw.githubusercontent.com/Rkhooda07/Bellsy/main/assets/workflow-demo.gif)
 
 ### Extra feature: toggle between sound modes
 
 This preview shows how to switch between `Focus` and `Vibe` sound styles.
 
-![Bellsy sound modes demo](assets/sound-modes-demo.gif)
-
-### Full YouTube demo
-
-> 📺 Add your full walkthrough video link here later.
->
-> Suggested section:
-> `Watch the full demo on YouTube: [Add link here]`
+![Bellsy sound modes demo](https://raw.githubusercontent.com/Rkhooda07/Bellsy/main/assets/sound-modes-demo.gif)
 
 ## 🧠 Works With
 
 - Codex CLI
+- Gemini CLI
 - Claude Code
+- Blackbox CLI
 - Cursor
 - Visual Studio Code
 - VS Code-compatible editors
@@ -74,24 +71,31 @@ Bellsy is local-first. The terminal running your agent and the editor running Be
 
 ## 🧩 Typical Flow
 
-1. Start Bellsy setup from the Command Palette.
+1. Install Bellsy globally.
 2. Wrap your agent or CLI command with `bellsy-run`.
-3. Switch tabs and keep working.
+3. Keep working in the same terminal flow.
 4. Bellsy alerts you when the task completes, fails, or needs approval.
 
 ## ⚡ Quick Start
 
-1. Install Bellsy.
-2. Open the Command Palette.
-3. Run `Bellsy: Setup Local Agent Notifications`.
-4. Copy one of the generated wrapper commands.
-5. Run `Bellsy: Test Local Notifications`.
-6. Start your agent or command through `bellsy-run`.
+Install the global CLI package:
+
+```bash
+npm install -g bellsy
+```
+
+Run your agent through `bellsy-run`:
 
 For Codex CLI:
 
 ```bash
 bellsy-run codex
+```
+
+For Gemini CLI:
+
+```bash
+bellsy-run gemini
 ```
 
 For Claude Code:
@@ -100,11 +104,27 @@ For Claude Code:
 bellsy-run claude
 ```
 
+For Blackbox:
+
+```bash
+bellsy-run blackbox
+```
+
 For any other command:
 
 ```bash
 bellsy-run your-command-here
 ```
+
+`bellsy-run` starts the local notification server in the background when needed. You do not need to run a second terminal window or manually start `bellsy-run --serve`.
+
+For Gemini CLI, Bellsy installs a local Gemini `AfterAgent` hook on first run at:
+
+```text
+~/.gemini/extensions/bellsy-notifications
+```
+
+That hook is what lets Bellsy notify immediately after each Gemini response, even when Gemini's terminal UI does not print a clean completion marker.
 
 If Bellsy has to use a fallback port, the status bar shows the live endpoint. Advanced scripts can still target it with `BELLSY_URL`:
 
@@ -171,6 +191,12 @@ Bellsy: Show Logs
 ```
 
 If local events fail, check the Bellsy status bar item for the live endpoint instead of assuming port `9001` is active.
+
+For Gemini, confirm the hook is enabled:
+
+```bash
+gemini extensions list | grep bellsy-notifications
+```
 
 If approval prompts seem stuck, use the reminder popup or status bar item to reopen the pending request list.
 

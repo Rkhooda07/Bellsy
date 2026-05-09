@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import { AgentEvent, AgentEventPriority, AgentEventSource, AgentEventType } from './types';
 
@@ -67,7 +67,7 @@ export function parseEvent(raw: unknown, defaults: EventDefaults = {}): AgentEve
   const eventType = type as AgentEventType;
 
   return {
-    id: id ?? uuid(),
+    id: id ?? randomUUID(),
     type: eventType,
     source: (source as AgentEventSource | undefined) ?? defaults.source ?? AgentEventSource.EXTERNAL_AGENT,
     message: message.trim(),

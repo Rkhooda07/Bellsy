@@ -102,18 +102,30 @@ export class HttpTransport implements ITransport, IResponseTarget {
   }
 
   async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (req.method === 'GET' && this.pathname(req.url) === '/health') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          name: 'bellsy',
+          status: 'ok',
+          endpoint: this.getEventEndpoint(),
+        }),
+      );
+      return;
+    }
+
     if (req.method !== 'POST') {
       res.writeHead(404, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not found' }));
       return;
     }
 
-    if (req.url === '/event') {
+    if (this.pathname(req.url) === '/event') {
       await this.handleGenericEventRequest(req, res);
       return;
     }
 
-    if (this.cursorWebhookEnabled && req.url === CURSOR_WEBHOOK_PATH) {
+    if (this.cursorWebhookEnabled && this.pathname(req.url) === CURSOR_WEBHOOK_PATH) {
       await this.handleCursorWebhookRequest(req, res);
       return;
     }
@@ -238,6 +250,10 @@ export class HttpTransport implements ITransport, IResponseTarget {
     }
 
     return header;
+  }
+
+  private pathname(url: string | undefined): string {
+    return (url ?? '').split('?')[0] || '/';
   }
 
   private async createListeningServer(preferredPort: number): Promise<http.Server> {

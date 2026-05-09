@@ -2,20 +2,19 @@
   "name": "bellsy",
   "displayName": "Bellsy",
   "description": "Notifications for local coding agents, scripts, and CLI tools when work finishes, fails, or needs approval.",
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "type": "commonjs",
   "publisher": "rkhooda07",
   "license": "MIT",
+  "packageManager": "npm@11.7.0",
   "preview": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rkhooda07/Bellsy.git"
+    "url": "git+https://github.com/Rkhooda07/Bellsy.git"
   },
   "homepage": "https://github.com/Rkhooda07/Bellsy#readme",
   "bugs": {
     "url": "https://github.com/Rkhooda07/Bellsy/issues"
-  },
-  "engines": {
-    "vscode": "^1.85.0"
   },
   "extensionKind": [
     "ui"
@@ -37,9 +36,13 @@
   "keywords": [
     "notifications",
     "agent",
+    "cli",
+    "terminal",
     "productivity",
     "codex",
+    "gemini",
     "claude-code",
+    "blackbox",
     "cursor",
     "vscode",
     "local"
@@ -55,12 +58,19 @@
   "bin": {
     "bellsy-run": "out/cli/bellsy-run.js"
   },
+  "engines": {
+    "node": ">=20.0.0",
+    "vscode": "^1.85.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "out",
     "sounds",
     "assets/icon.png"
   ],
-  "icon": "assets/MaybeFinalLogo.png",
+  "icon": "assets/icon.png",
   "contributes": {
     "commands": [
       {
@@ -136,23 +146,25 @@
     "bundle": "node tools/bundle.js",
     "build": "npm run compile && npm run bundle",
     "vscode:prepublish": "npm run build",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm test && npm run npm:pack:dry-run",
     "pretest": "npm run build",
     "test": "node --test test/unit/*.test.js",
     "watch": "tsc -watch -p ./",
+    "npm:pack": "npm pack",
+    "npm:pack:dry-run": "npm pack --dry-run",
     "package": "vsce package",
-    "package:verify": "npm test && npm run package"
+    "package:verify": "npm test && npm run package && npm run npm:pack:dry-run"
   },
   "vsce": {
     "baseImagesUrl": "https://raw.githubusercontent.com/Rkhooda07/Bellsy/02b320c"
   },
   "dependencies": {
-    "node-notifier": "^10.0.1",
-    "uuid": "^9.0.1"
+    "node-notifier": "^10.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
     "@types/node-notifier": "^8.0.5",
-    "@types/uuid": "^10.0.0",
     "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.1",

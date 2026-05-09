@@ -151,7 +151,7 @@ async function main(): Promise<void> {
 
   const options = parseArgs(process.argv.slice(2));
 
-  await ensureStandaloneServer(options.endpoint);
+  options.endpoint = await ensureStandaloneServer(options.endpoint);
 
   const detector = new PatternDetector({ agent: options.agent });
   const plan = buildSpawnPlan(options);
@@ -182,25 +182,39 @@ async function checkPort(port: number): Promise<boolean> {
   });
 }
 
-async function ensureStandaloneServer(endpoint: string): Promise<void> {
+async function ensureStandaloneServer(endpoint: string): Promise<string> {
   const port = endpointPort(endpoint);
   if (!port) {
-    return;
+    return endpoint;
   }
 
-  if (await checkPort(port)) {
-    return;
+  if (await isBellsyServer(endpoint)) {
+    return endpoint;
   }
 
-  startBackgroundServer(port);
+  const portIsBusy = await checkPort(port);
+  const serverPort = portIsBusy ? await findOpenPort() : port;
+  const serverEndpoint = endpointWithPort(endpoint, serverPort);
 
-  const started = await waitForPort(port, SERVER_START_TIMEOUT_MS);
-  if (!started) {
+  if (portIsBusy) {
     console.error(
-      `[bellsy-run] Bellsy notification server did not start on 127.0.0.1:${port}. ` +
-        'The wrapped command will still run, but notifications may not appear.',
+      `[bellsy-run] Port ${port} is already in use by another process. ` +
+        `Starting Bellsy on ${serverEndpoint} for this run.`,
     );
   }
+
+  startBackgroundServer(serverPort);
+
+  const started = await waitForBellsyServer(serverEndpoint, SERVER_START_TIMEOUT_MS);
+  if (!started) {
+    console.error(
+      `[bellsy-run] Bellsy notification server did not start on ${serverEndpoint}. ` +
+        'The wrapped command will still run, but notifications may not appear.',
+    );
+    return endpoint;
+  }
+
+  return serverEndpoint;
 }
 
 function startBackgroundServer(port: number): void {
@@ -208,7 +222,7 @@ function startBackgroundServer(port: number): void {
   const child = spawn(process.execPath, [scriptPath, '--serve', '--port', String(port)], {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, BELLSY_BACKGROUND: 'true' }
+    env: { ...process.env, BELLSY_BACKGROUND: 'true' },
   });
   child.unref();
 }
@@ -222,10 +236,10 @@ function childEnv(options: CliOptions, runId: string): NodeJS.ProcessEnv {
   };
 }
 
-async function waitForPort(port: number, timeoutMs: number): Promise<boolean> {
+async function waitForBellsyServer(endpoint: string, timeoutMs: number): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (await checkPort(port)) {
+    if (await isBellsyServer(endpoint)) {
       return true;
     }
 
@@ -233,6 +247,72 @@ async function waitForPort(port: number, timeoutMs: number): Promise<boolean> {
   }
 
   return false;
+}
+
+async function isBellsyServer(endpoint: string): Promise<boolean> {
+  const healthEndpoint = healthEndpointFor(endpoint);
+  if (!healthEndpoint) {
+    return false;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 750);
+  try {
+    const response = await fetch(healthEndpoint, {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      return false;
+    }
+
+    const body = (await response.json().catch(() => null)) as { name?: unknown; status?: unknown } | null;
+    return body?.name === 'bellsy' && body.status === 'ok';
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function healthEndpointFor(endpoint: string): string | null {
+  try {
+    const url = new URL(endpoint);
+    if (url.protocol !== 'http:') {
+      return null;
+    }
+
+    url.pathname = '/health';
+    url.search = '';
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function endpointWithPort(endpoint: string, port: number): string {
+  const url = new URL(endpoint);
+  url.port = String(port);
+  return url.toString();
+}
+
+function findOpenPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(port);
+      });
+    });
+  });
 }
 
 async function runWithPipes(

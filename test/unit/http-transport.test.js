@@ -73,6 +73,19 @@ test('http transport returns permission responses to the caller', async () => {
   assert.equal(typeof body.eventId, 'string');
 });
 
+test('http transport exposes Bellsy health endpoint', async () => {
+  const transport = new HttpTransport(9001, 500, createLogger());
+  const req = createRequest('', 'GET', '/health?source=cli');
+  const res = createResponse();
+
+  await transport.handleRequest(req, res);
+
+  assert.equal(res.statusCode, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.name, 'bellsy');
+  assert.equal(body.status, 'ok');
+});
+
 test('http transport returns 400 for invalid payloads', async () => {
   const transport = new HttpTransport(9001, 500, createLogger());
   const req = createRequest(
