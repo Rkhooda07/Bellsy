@@ -53,14 +53,12 @@
   ],
   "main": "./out/extension.js",
   "bin": {
-    "bellsy-run": "./out/cli/bellsy-run.js"
+    "bellsy-run": "out/cli/bellsy-run.js"
   },
   "files": [
     "out",
     "sounds",
-    "assets",
-    "README.md",
-    "LICENSE"
+    "assets/icon.png"
   ],
   "icon": "assets/MaybeFinalLogo.png",
   "contributes": {
