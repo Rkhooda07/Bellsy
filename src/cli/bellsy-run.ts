@@ -4,11 +4,13 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
+import * as net from 'net';
 
 import { AgentEventPriority, AgentEventSource, AgentEventType } from '../core/types';
 
 import { CodexSessionMonitor } from './CodexSessionMonitor';
 import { DetectedCliEvent, PatternDetector } from './PatternDetector';
+import { StandaloneServer } from './StandaloneServer';
 
 type CliOptions = {
   agent: string;
@@ -36,7 +38,22 @@ type SpawnPlan =
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:9001/event';
 
 async function main(): Promise<void> {
+  if (process.argv.includes('--serve')) {
+    const server = new StandaloneServer(9001, path.join(__dirname, '..', '..'));
+    await server.start();
+    return;
+  }
+
   const options = parseArgs(process.argv.slice(2));
+
+  // Auto-start server if not running
+  const isServerRunning = await checkPort(9001);
+  if (!isServerRunning) {
+    startBackgroundServer();
+    // Give it a moment to start up
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
+
   const detector = new PatternDetector({ agent: options.agent });
   const plan = buildSpawnPlan(options);
   const runId = randomUUID();
@@ -47,6 +64,30 @@ async function main(): Promise<void> {
   }
 
   await runWithPipes(plan, detector, options, runId);
+}
+
+async function checkPort(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const client = new net.Socket();
+    client.once('connect', () => {
+      client.destroy();
+      resolve(true);
+    });
+    client.once('error', () => {
+      resolve(false);
+    });
+    client.connect(port, '127.0.0.1');
+  });
+}
+
+function startBackgroundServer(): void {
+  const scriptPath = __filename;
+  const child = spawn(process.execPath, [scriptPath, '--serve'], {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, BELLSY_BACKGROUND: 'true' }
+  });
+  child.unref();
 }
 
 async function runWithPipes(
@@ -226,7 +267,13 @@ function findCommandStartIndex(args: string[]): number {
 
 function inferAgentName(command: string): string {
   const baseName = path.basename(command).toLowerCase();
-  if (baseName === 'codex' || baseName === 'claude' || baseName === 'claude-code') {
+  if (
+    baseName === 'codex' ||
+    baseName === 'claude' ||
+    baseName === 'claude-code' ||
+    baseName === 'gemini' ||
+    baseName === 'blackbox'
+  ) {
     return baseName;
   }
 
@@ -268,7 +315,8 @@ function shouldWrapInTerminal(options: CliOptions): boolean {
     return true;
   }
 
-  return /^(codex|claude|claude-code)$/i.test(options.command) || /^(codex|claude|claude-code)$/i.test(options.agent);
+  const agents = /^(codex|claude|claude-code|gemini|blackbox)$/i;
+  return agents.test(options.command) || agents.test(options.agent);
 }
 
 function shouldMonitorCodexSession(options: CliOptions): boolean {

@@ -55,6 +55,26 @@ test('detects failure phrases from recent output lines', () => {
   assert.equal(events[0].priority, AgentEventPriority.HIGH);
 });
 
+test('detects Gemini finished generating', () => {
+  const detector = new PatternDetector({ agent: 'gemini' });
+
+  const events = detector.ingest('Generating response...\nFinished generating\n');
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, AgentEventType.TASK_COMPLETED);
+  assert.match(events[0].message, /gemini/);
+});
+
+test('detects Blackbox needs approval', () => {
+  const detector = new PatternDetector({ agent: 'blackbox' });
+
+  const events = detector.ingest('Blackbox > Action required: allow shell script?');
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, AgentEventType.PERMISSION_REQUIRED);
+  assert.match(events[0].message, /blackbox/);
+});
+
 test('dedupes repeated signals within the cooldown window', () => {
   let time = 10_000;
   const detector = new PatternDetector({

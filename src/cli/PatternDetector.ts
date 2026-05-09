@@ -21,6 +21,8 @@ const ANSI_PATTERN = /\u001b\[[0-?]*[ -/]*[@-~]/g;
 const DEFAULT_PERMISSION_PATTERNS = [
   /\bwaiting for confirmation\b/i,
   /\bpermission required\b/i,
+  /\baction required\b/i,
+  /\bneeds approval\b/i,
   /\ballow(?: this)? command\b/i,
   /\bdo you want to (?:proceed|continue)\b/i,
   /\bconfirm\b.*(?:\[y\/n\]|\[y\/N\]|\(y\/n\)|\(yes\/no\))/i,
@@ -30,6 +32,8 @@ const DEFAULT_COMPLETION_PATTERNS = [
   /\btask finished\b/i,
   /\bcompleted successfully\b/i,
   /\bresponse finished\b/i,
+  /\bfinished generating\b/i,
+  /\bgeneration complete\b/i,
   /(?:^|\s)done[.!]?\s*$/i,
 ];
 const DEFAULT_FAILURE_PATTERNS = [

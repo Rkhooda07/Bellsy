@@ -32,6 +32,8 @@ export class CursorSetupService {
       [
         { label: 'Copy Claude Code Wrapper', detail: `Start Claude Code through bellsy-run (${endpoint}).` },
         { label: 'Copy Codex Wrapper', detail: `Start Codex CLI through bellsy-run (${endpoint}).` },
+        { label: 'Copy Gemini Wrapper', detail: `Start Gemini CLI through bellsy-run (${endpoint}).` },
+        { label: 'Copy Blackbox Wrapper', detail: `Start Blackbox AI through bellsy-run (${endpoint}).` },
         { label: 'Copy Generic Wrapper', detail: `Wrap any local command with bellsy-run (${endpoint}).` },
         { label: 'Copy Direct Event Curl', detail: 'Send a completion or error event from any script.' },
         { label: 'Copy Setup Checklist', detail: 'Quick-start steps for local notifications.' },
@@ -56,6 +58,18 @@ export class CursorSetupService {
     if (action.label === 'Copy Codex Wrapper') {
       await vscode.env.clipboard.writeText('bellsy-run codex');
       await vscode.window.showInformationMessage('Codex wrapper command copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Gemini Wrapper') {
+      await vscode.env.clipboard.writeText('bellsy-run gemini');
+      await vscode.window.showInformationMessage('Gemini wrapper command copied.');
+      return;
+    }
+
+    if (action.label === 'Copy Blackbox Wrapper') {
+      await vscode.env.clipboard.writeText('bellsy-run blackbox');
+      await vscode.window.showInformationMessage('Blackbox AI wrapper command copied.');
       return;
     }
 
