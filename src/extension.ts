@@ -10,7 +10,7 @@ import {
   DEFAULT_PERMISSION_REMINDER_INTERVAL_SECONDS,
   DEFAULT_SOUND_VOLUME,
 } from './core/constants';
-import { AgentEventType } from './core/types';
+import { AgentEvent, AgentEventType } from './core/types';
 import { NotificationEngine } from './services/NotificationEngine';
 import { NotificationService } from './services/NotificationService';
 import { OutputChannelLogger } from './services/OutputChannelLogger';
@@ -106,16 +106,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     dispatcher.setTarget(transport as IResponseTarget);
   }
 
-  EventBus.on(AgentEventType.PERMISSION_REQUIRED, (event) => {
+  const registerEventHandler = (type: AgentEventType, listener: (event: AgentEvent) => void): void => {
+    EventBus.on(type, listener);
+    context.subscriptions.push(
+      new vscode.Disposable(() => {
+        EventBus.off(type, listener);
+      }),
+    );
+  };
+
+  registerEventHandler(AgentEventType.PERMISSION_REQUIRED, (event) => {
     void permissionManager.handle(event);
   });
 
-  EventBus.on(AgentEventType.TASK_COMPLETED, (event) => {
+  registerEventHandler(AgentEventType.TASK_COMPLETED, (event) => {
     logger.info(`Task completed event received: ${event.message}`);
     notificationEngine.showTaskCompleted(event);
   });
 
-  EventBus.on(AgentEventType.ATTENTION_REQUIRED, (event) => {
+  registerEventHandler(AgentEventType.ATTENTION_REQUIRED, (event) => {
     logger.info(`Attention required event received: ${event.message}`);
     notificationEngine.showAttentionRequired(event);
   });

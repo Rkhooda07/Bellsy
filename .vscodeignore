@@ -5,12 +5,15 @@ docs/**
 implementation_plan.md
 tsconfig.json
 .gitignore
+.npmignore
 package-lock.json
 .vscode/**
 .github/**
 tools/**
 relay/**
 *.vsix
+*.tgz
+repro_patterns.js
 **/*.map
 out/core/**
 out/integrations/**
@@ -22,7 +25,10 @@ out/cli/CodexSessionMonitor.js
 out/cli/PatternDetector.js
 out/cli/pingly-run.*
 assets/Maybelogo.png
+assets/MaybeFinalLogo.png
 assets/maybeLogo2.O.png
+assets/sound-modes-demo.gif
+assets/workflow-demo.gif
 assets/GIF1.mp4
 assets/GIF2.mov
 assets/readme-logo.png
@@ -37,4 +43,3 @@ node_modules/**
 !node_modules/shellwords/**
 !node_modules/which/**
 !node_modules/isexe/**
-!node_modules/uuid/**

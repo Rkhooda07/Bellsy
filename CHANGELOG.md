@@ -6,6 +6,8 @@
 - Hardened standalone CLI startup so Bellsy verifies the local server before posting events.
 - Added a Bellsy HTTP health endpoint for release checks and safer port handling.
 - Removed the direct `uuid` runtime dependency in favor of Node's built-in UUID support.
+- Trimmed the VS Code Marketplace package to exclude generated archives and non-runtime media.
+- Cleaned up extension event listeners on deactivation to avoid duplicate handlers after reloads.
 - Updated npm package metadata, release scripts, and README guidance for the global CLI package.
 
 ## 0.2.0
