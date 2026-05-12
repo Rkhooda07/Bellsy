@@ -1,7 +1,9 @@
 node_modules
 out
+*.tgz
 *.vsix
 .DS_Store
+repro_patterns.js
 docs/build-journey-video-script.md
 assets/GIF1.mp4
 assets/GIF2.mov
