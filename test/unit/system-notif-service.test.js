@@ -19,7 +19,7 @@ test('macOS VS Code notifications keep the VS Code sender bundle id', () => {
   assert.equal(service.detectMacAppName(), 'Visual Studio Code');
 });
 
-test('macOS notifier warms the terminal-notifier binary once during startup', () => {
+test('macOS notifier warms the terminal-notifier delivery path once during startup', () => {
   const originalPlatform = os.platform;
   const originalExecFile = childProcess.execFile;
   const modulePath = require.resolve('../../out/services/SystemNotifService');
@@ -41,7 +41,7 @@ test('macOS notifier warms the terminal-notifier binary once during startup', ()
     service.warmMacNotifier();
 
     assert.equal(calls.length, 1);
-    assert.deepEqual(calls[0].args, ['-help']);
+    assert.deepEqual(calls[0].args, ['-remove', 'bellsy-warmup']);
   } finally {
     childProcess.execFile = originalExecFile;
     os.platform = originalPlatform;

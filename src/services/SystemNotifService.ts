@@ -5,6 +5,7 @@ import * as path from 'path';
 import notifier from 'node-notifier';
 
 type PermissionChoice = 'Allow' | 'Deny';
+const MAC_NOTIFIER_WARMUP_GROUP = 'bellsy-warmup';
 
 export class SystemNotifService {
   private readonly macNotifierPath = path.join(
@@ -127,7 +128,7 @@ export class SystemNotifService {
     }
 
     this.hasWarmedMacNotifier = true;
-    execFile(this.macNotifierPath, ['-help'], () => undefined);
+    execFile(this.macNotifierPath, ['-remove', MAC_NOTIFIER_WARMUP_GROUP], () => undefined);
   }
 
   private detectMacSenderBundleId(): string | undefined {
