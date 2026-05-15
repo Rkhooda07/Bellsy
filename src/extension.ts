@@ -25,12 +25,13 @@ import { HttpTransport } from './transport/HttpTransport';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const logger = new OutputChannelLogger();
-  await new CliShimService(
+  const cliShimService = new CliShimService(
     context.globalStorageUri.fsPath,
     context.extensionPath,
     context.environmentVariableCollection,
     logger,
-  ).install();
+  );
+  await cliShimService.install();
   const config = vscode.workspace.getConfiguration('bellsy');
   const notificationService = new NotificationService();
   const statusBarService = new StatusBarService();
@@ -150,6 +151,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await transport.start();
     statusBarService.setListeningEndpoint(transport.getEventEndpoint?.());
     const activeEndpoint = transport.getEventEndpoint?.();
+    await cliShimService.updateEndpoint(activeEndpoint);
     if (activeEndpoint) {
       logger.info(`Local endpoint ready at ${activeEndpoint}`);
     }
