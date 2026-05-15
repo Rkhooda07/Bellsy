@@ -16,6 +16,7 @@ import { NotificationService } from './services/NotificationService';
 import { OutputChannelLogger } from './services/OutputChannelLogger';
 import { PermissionManager } from './services/PermissionManager';
 import { IResponseTarget, ResponseDispatcher } from './services/ResponseDispatcher';
+import { CliShimService } from './services/CliShimService';
 import { CursorSetupService } from './services/CursorSetupService';
 import { SoundService, getSoundMode } from './services/SoundService';
 import { StatusBarService } from './services/StatusBarService';
@@ -24,6 +25,12 @@ import { HttpTransport } from './transport/HttpTransport';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const logger = new OutputChannelLogger();
+  await new CliShimService(
+    context.globalStorageUri.fsPath,
+    context.extensionPath,
+    context.environmentVariableCollection,
+    logger,
+  ).install();
   const config = vscode.workspace.getConfiguration('bellsy');
   const notificationService = new NotificationService();
   const statusBarService = new StatusBarService();
