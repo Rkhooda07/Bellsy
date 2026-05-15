@@ -9,7 +9,6 @@
 !sounds/**
 !assets/
 !assets/icon.png
-!assets/MaybeFinalLogo.png
 
 src/
 test/
@@ -27,3 +26,5 @@ implementation_plan.md
 tsconfig.json
 *.tgz
 *.vsix
+**/*.map
+out/cli/pingly-run.*

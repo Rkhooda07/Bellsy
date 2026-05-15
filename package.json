@@ -2,7 +2,7 @@
   "name": "bellsy",
   "displayName": "Bellsy",
   "description": "Notifications for local coding agents, scripts, and CLI tools when work finishes, fails, or needs approval.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "commonjs",
   "publisher": "rkhooda7",
   "license": "MIT",
@@ -136,9 +136,10 @@
     }
   },
   "scripts": {
+    "clean": "node tools/clean.js",
     "compile": "tsc -p ./",
     "bundle": "node tools/bundle.js",
-    "build": "npm run compile && npm run bundle",
+    "build": "npm run clean && npm run compile && npm run bundle",
     "vscode:prepublish": "npm run build",
     "prepack": "npm run build",
     "prepublishOnly": "npm test && npm run npm:pack:dry-run",

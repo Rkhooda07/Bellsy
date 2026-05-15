@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Fixed the remaining first macOS notification delay by warming the actual Notification Center delivery path during startup.
+- Corrected macOS bundled sound playback volume so Bellsy respects the configured level instead of overdriving the first-party player.
+- Kept the original Bellsy contract intact: `bellsy-run` remains the global npm CLI and the VS Code/Cursor extension remains the local notification surface.
+
 ## 0.2.1
 
 - Fixed Gemini CLI completion notifications by installing a local Gemini `AfterAgent` hook from `bellsy-run gemini`.
