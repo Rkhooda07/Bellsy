@@ -23,7 +23,7 @@ test('macOS focus mode keeps using the current permission sound file', () => {
     const service = new SoundService('/tmp/sounds', true, 45, () => 'focus');
     const command = service.buildCommand(soundPath);
 
-    assert.equal(command, `afplay -v 45 "${soundPath}"`);
+    assert.equal(command, `afplay -v 0.45 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }
@@ -40,7 +40,23 @@ test('macOS completion sound prefers the bundled wav file', () => {
     const service = new SoundService('/tmp/sounds', true, 45);
     const command = service.buildCommand(soundPath);
 
-    assert.equal(command, `afplay -v 45 "${soundPath}"`);
+    assert.equal(command, `afplay -v 0.45 "${soundPath}"`);
+  } finally {
+    os.platform = originalPlatform;
+  }
+});
+
+test('macOS volume stays within native afplay range', () => {
+  const originalPlatform = os.platform;
+  os.platform = () => 'darwin';
+
+  try {
+    const soundPath = path.resolve(__dirname, '../../sounds/completion.wav');
+    const mutedCommand = new SoundService('/tmp/sounds', true, -10).buildCommand(soundPath);
+    const maxCommand = new SoundService('/tmp/sounds', true, 250).buildCommand(soundPath);
+
+    assert.equal(mutedCommand, `afplay -v 0.00 "${soundPath}"`);
+    assert.equal(maxCommand, `afplay -v 1.00 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }

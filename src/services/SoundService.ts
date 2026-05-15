@@ -119,6 +119,6 @@ export class SoundService {
   }
 
   private get normalizedVolume(): string {
-    return Math.max(0, Math.min(this.volume, 100)).toFixed(0);
+    return (Math.max(0, Math.min(this.volume, 100)) / 100).toFixed(2);
   }
 }
