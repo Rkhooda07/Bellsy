@@ -19,6 +19,7 @@ export class SystemNotifService {
     'terminal-notifier',
   );
   private readonly macNotificationCenter: typeof notifier;
+  private hasWarmedMacNotifier = false;
 
   constructor(
     private readonly extensionPath: string,
@@ -30,6 +31,7 @@ export class SystemNotifService {
       withFallback: false,
       customPath: this.macNotifierPath,
     }) as typeof notifier;
+    this.warmMacNotifier();
   }
 
   usesNativeSound(): boolean {
@@ -76,6 +78,7 @@ export class SystemNotifService {
   }
 
   private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
+    this.warmMacNotifier();
     const senderBundleId = this.detectMacSenderBundleId();
     const notificationOptions = {
       title,
@@ -116,6 +119,15 @@ export class SystemNotifService {
         },
       );
     });
+  }
+
+  private warmMacNotifier(): void {
+    if (os.platform() !== 'darwin' || this.hasWarmedMacNotifier) {
+      return;
+    }
+
+    this.hasWarmedMacNotifier = true;
+    execFile(this.macNotifierPath, ['-help'], () => undefined);
   }
 
   private detectMacSenderBundleId(): string | undefined {
