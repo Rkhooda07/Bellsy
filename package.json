@@ -2,7 +2,7 @@
   "name": "bellsy",
   "displayName": "Bellsy",
   "description": "Notifications for local coding agents, scripts, and CLI tools when work finishes, fails, or needs approval.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "commonjs",
   "publisher": "rkhooda7",
   "license": "MIT",
