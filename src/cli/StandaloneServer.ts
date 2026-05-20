@@ -4,6 +4,7 @@ import * as fs from 'fs';
 
 import EventBus from '../core/EventBus';
 import { AgentEventType } from '../core/types';
+import { DEFAULT_SOUND_VOLUME } from '../core/constants';
 import { NotificationEngine } from '../services/NotificationEngine';
 import { SoundService } from '../services/SoundService';
 import { SystemNotifService } from '../services/SystemNotifService';
@@ -28,7 +29,7 @@ export class StandaloneServer {
     const soundService = new SoundService(
       [path.join(this.extensionPath, 'media', 'sounds'), path.join(this.extensionPath, 'sounds')],
       true, // soundEnabled
-      45,   // volume
+      DEFAULT_SOUND_VOLUME,
       () => 'focus' // lock to focus mode as requested
     );
 

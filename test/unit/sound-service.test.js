@@ -20,10 +20,10 @@ test('macOS focus mode keeps using the current permission sound file', () => {
     const soundPath = path.resolve(__dirname, '../../sounds/permission.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
-    const service = new SoundService('/tmp/sounds', true, 45, () => 'focus');
+    const service = new SoundService('/tmp/sounds', true, 100, () => 'focus');
     const command = service.buildCommand(soundPath);
 
-    assert.equal(command, `afplay -v 0.45 "${soundPath}"`);
+    assert.equal(command, `afplay -v 1.00 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }
@@ -37,10 +37,10 @@ test('macOS completion sound prefers the bundled wav file', () => {
     const soundPath = path.resolve(__dirname, '../../sounds/completion.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
-    const service = new SoundService('/tmp/sounds', true, 45);
+    const service = new SoundService('/tmp/sounds', true, 100);
     const command = service.buildCommand(soundPath);
 
-    assert.equal(command, `afplay -v 0.45 "${soundPath}"`);
+    assert.equal(command, `afplay -v 1.00 "${soundPath}"`);
   } finally {
     os.platform = originalPlatform;
   }
@@ -70,7 +70,7 @@ test('Windows playback targets the bundled permission wav', () => {
     const soundPath = path.resolve(__dirname, '../../sounds/permission.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
-    const service = new SoundService('/tmp/sounds', true, 45);
+    const service = new SoundService('/tmp/sounds', true, 100);
     const command = service.buildCommand(soundPath);
 
     assert.match(command, /permission\.wav/);
@@ -88,7 +88,7 @@ test('Linux playback targets the bundled completion wav', () => {
     const soundPath = path.resolve(__dirname, '../../sounds/completion.wav');
     assert.equal(fs.existsSync(soundPath), true);
 
-    const service = new SoundService('/tmp/sounds', true, 45);
+    const service = new SoundService('/tmp/sounds', true, 100);
     const command = service.buildCommand(soundPath);
 
     assert.equal(command, `paplay "${soundPath}" || aplay "${soundPath}"`);
@@ -98,14 +98,14 @@ test('Linux playback targets the bundled completion wav', () => {
 });
 
 test('vibe mode maps completion to the reserved task_complete sound', () => {
-  const service = new SoundService('/tmp/sounds', true, 45, () => 'vibe');
+  const service = new SoundService('/tmp/sounds', true, 100, () => 'vibe');
   const resolvedPath = service.resolveSoundPath(['task_complete.wav']);
 
   assert.equal(resolvedPath, path.join('/tmp/sounds', 'task_complete.wav'));
 });
 
 test('completion preview can target a selected mode without changing the configured mode reader', () => {
-  const service = new SoundService('/tmp/sounds', true, 45, () => 'focus');
+  const service = new SoundService('/tmp/sounds', true, 100, () => 'focus');
 
   assert.equal(service.resolveTaskCompleteSoundPath('focus'), path.join('/tmp/sounds', 'completion.wav'));
   assert.equal(service.resolveTaskCompleteSoundPath('vibe'), path.join('/tmp/sounds', 'task_complete.wav'));
@@ -120,7 +120,7 @@ test('macOS completion preview runs immediately without notification sync delay'
     const service = new SoundService(
       path.resolve(__dirname, '../../sounds'),
       true,
-      45,
+      100,
       () => 'focus',
       (command, onError) => {
         calls.push(command);
@@ -138,7 +138,7 @@ test('macOS completion preview runs immediately without notification sync delay'
 });
 
 test('vibe mode maps permissions to the reserved permission_alert sound', () => {
-  const service = new SoundService('/tmp/sounds', true, 45, () => 'vibe');
+  const service = new SoundService('/tmp/sounds', true, 100, () => 'vibe');
   const resolvedPath = service.resolveSoundPath(['permission_alert.wav']);
 
   assert.equal(resolvedPath, path.join('/tmp/sounds', 'permission_alert.wav'));

@@ -101,7 +101,7 @@
         },
         "bellsy.soundVolume": {
           "type": "number",
-          "default": 45,
+          "default": 100,
           "minimum": 0,
           "maximum": 100,
           "description": "Preferred playback volume. Applied to macOS native playback and supported bundled playback commands."
