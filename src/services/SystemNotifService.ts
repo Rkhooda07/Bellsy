@@ -151,7 +151,16 @@ export class SystemNotifService {
       return 'com.vscodium';
     }
 
-    return 'com.microsoft.VSCode';
+    if (signals.includes('Visual Studio Code') || signals.includes('VS Code') || signals.includes('Code')) {
+      return 'com.microsoft.VSCode';
+    }
+
+    const termInfo = this.detectTerminalInfo();
+    if (termInfo?.bundleId) {
+      return termInfo.bundleId;
+    }
+
+    return undefined;
   }
 
   private buildMacActivateCommand(): string | undefined {
@@ -188,7 +197,42 @@ export class SystemNotifService {
       return 'Visual Studio Code';
     }
 
+    const termInfo = this.detectTerminalInfo();
+    if (termInfo?.appName) {
+      return termInfo.appName;
+    }
+
+    const termProgram = process.env.TERM_PROGRAM;
+    if (termProgram && termProgram !== 'vscode') {
+      return termProgram.replace(/\.app$/, '');
+    }
+
     return this.hostAppName || undefined;
+  }
+
+  private detectTerminalInfo(): { bundleId?: string; appName?: string } | undefined {
+    const termProgram = process.env.TERM_PROGRAM;
+    if (!termProgram || termProgram === 'vscode') {
+      return undefined;
+    }
+
+    if (termProgram === 'Apple_Terminal') {
+      return { bundleId: 'com.apple.Terminal', appName: 'Terminal' };
+    }
+
+    if (termProgram === 'iTerm.app') {
+      return { bundleId: 'com.googlecode.iterm2', appName: 'iTerm' };
+    }
+
+    if (termProgram === 'Hyper') {
+      return { bundleId: 'co.zeit.hyper', appName: 'Hyper' };
+    }
+
+    if (termProgram === 'WarpTerminal') {
+      return { bundleId: 'dev.warp.Warp-Terminal', appName: 'Warp' };
+    }
+
+    return undefined;
   }
 
   private isActivationResponse(response?: string, activationType?: string): boolean {
