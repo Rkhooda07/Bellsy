@@ -90,6 +90,7 @@ export class PatternDetector {
 
     const events: DetectedCliEvent[] = [];
     if (this.matches(this.permissionPatterns, this.buffer) && this.canEmit(AgentEventType.PERMISSION_REQUIRED)) {
+      this.buffer = '';
       events.push({
         type: AgentEventType.PERMISSION_REQUIRED,
         message: this.formatMessage('Waiting for confirmation'),
@@ -99,6 +100,7 @@ export class PatternDetector {
     }
 
     if (
+      this.sawAgentActivity &&
       (
         this.matches(this.completionPatterns, recentText) ||
         (this.shouldDetectPromptReturn() && this.matches(RETURNED_TO_PROMPT_PATTERNS, this.recentLine()))
@@ -106,6 +108,7 @@ export class PatternDetector {
       this.canEmit(AgentEventType.TASK_COMPLETED)
     ) {
       this.sawAgentActivity = false;
+      this.buffer = '';
       events.push({
         type: AgentEventType.TASK_COMPLETED,
         message: this.formatMessage('Response completed'),
@@ -115,6 +118,7 @@ export class PatternDetector {
     }
 
     if (this.matches(this.failurePatterns, recentText) && this.canEmit(AgentEventType.ATTENTION_REQUIRED)) {
+      this.buffer = '';
       events.push({
         type: AgentEventType.ATTENTION_REQUIRED,
         message: this.formatMessage('Task needs attention'),

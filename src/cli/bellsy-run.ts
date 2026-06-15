@@ -68,6 +68,7 @@ async function main() {
         confidence: 'high',
         wrapper: 'bellsy-run',
         integration: 'gemini-after-agent-hook',
+        terminal: process.env.TERM_PROGRAM,
       },
     });
   } catch {
@@ -688,7 +689,8 @@ async function postEvent(
   options: CliOptions,
   runId: string,
 ): Promise<{ allowed?: boolean } | null> {
-  const correlationId = event.correlationId ?? `${runId}:${event.type}:${randomUUID()}`;
+  const stableMessageKey = event.message.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 32);
+  const correlationId = event.correlationId ?? `${runId}:${event.type}:${stableMessageKey}`;
   const response = await fetch(options.endpoint, {
     method: 'POST',
     headers: {
@@ -704,6 +706,7 @@ async function postEvent(
       metadata: {
         confidence: event.confidence,
         wrapper: 'bellsy-run',
+        terminal: process.env.TERM_PROGRAM,
       },
     }),
   }).catch((error: Error) => {

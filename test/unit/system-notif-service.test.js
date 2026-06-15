@@ -6,17 +6,29 @@ const os = require('node:os');
 const { SystemNotifService } = require('../../out/services/SystemNotifService');
 
 test('macOS Cursor notifications use terminal-notifier sender fallback', () => {
-  const service = new SystemNotifService('/tmp/bellsy-extension', 'Cursor');
+  const originalTerm = process.env.TERM_PROGRAM;
+  process.env.TERM_PROGRAM = 'vscode';
+  try {
+    const service = new SystemNotifService('/tmp/bellsy-extension', 'Cursor');
 
-  assert.equal(service.detectMacSenderBundleId(), undefined);
-  assert.equal(service.detectMacAppName(), 'Cursor');
+    assert.equal(service.detectMacSenderBundleId(), undefined);
+    assert.equal(service.detectMacAppName(), 'Cursor');
+  } finally {
+    process.env.TERM_PROGRAM = originalTerm;
+  }
 });
 
 test('macOS VS Code notifications keep the VS Code sender bundle id', () => {
-  const service = new SystemNotifService('/tmp/bellsy-extension', 'Visual Studio Code');
+  const originalTerm = process.env.TERM_PROGRAM;
+  process.env.TERM_PROGRAM = 'vscode';
+  try {
+    const service = new SystemNotifService('/tmp/bellsy-extension', 'Visual Studio Code');
 
-  assert.equal(service.detectMacSenderBundleId(), 'com.microsoft.VSCode');
-  assert.equal(service.detectMacAppName(), 'Visual Studio Code');
+    assert.equal(service.detectMacSenderBundleId(), 'com.microsoft.VSCode');
+    assert.equal(service.detectMacAppName(), 'Visual Studio Code');
+  } finally {
+    process.env.TERM_PROGRAM = originalTerm;
+  }
 });
 
 test('macOS notifier warms the terminal-notifier delivery path once during startup', () => {

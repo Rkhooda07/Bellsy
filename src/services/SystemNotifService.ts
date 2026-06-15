@@ -39,9 +39,9 @@ export class SystemNotifService {
     return false;
   }
 
-  async showPermissionRequest(message: string, critical = true): Promise<PermissionChoice | undefined> {
+  async showPermissionRequest(message: string, critical = true, metadata?: Record<string, unknown>): Promise<PermissionChoice | undefined> {
     if (os.platform() === 'darwin') {
-      await this.showMacNotification('Bellsy - Permission Required', message, critical);
+      await this.showMacNotification('Bellsy - Permission Required', message, critical, metadata);
       return undefined;
     }
 
@@ -49,18 +49,18 @@ export class SystemNotifService {
     return undefined;
   }
 
-  notifyCompletion(message: string, critical = false): void {
+  notifyCompletion(message: string, critical = false, metadata?: Record<string, unknown>): void {
     if (os.platform() === 'darwin') {
-      void this.showMacNotification('Bellsy - Task Completed', message, critical);
+      void this.showMacNotification('Bellsy - Task Completed', message, critical, metadata);
       return;
     }
 
     this.notifyGeneric('Bellsy - Task Completed', message, 10, critical);
   }
 
-  notifyAttention(message: string, critical = true): void {
+  notifyAttention(message: string, critical = true, metadata?: Record<string, unknown>): void {
     if (os.platform() === 'darwin') {
-      void this.showMacNotification('Bellsy - Attention Required', message, critical);
+      void this.showMacNotification('Bellsy - Attention Required', message, critical, metadata);
       return;
     }
 
@@ -78,7 +78,7 @@ export class SystemNotifService {
     });
   }
 
-  private showMacNotification(title: string, message: string, critical: boolean): Promise<void> {
+  private showMacNotification(title: string, message: string, critical: boolean, metadata?: Record<string, unknown>): Promise<void> {
     this.warmMacNotifier();
     const senderBundleId = this.detectMacSenderBundleId();
     const notificationOptions = {
@@ -99,9 +99,26 @@ export class SystemNotifService {
       notificationOptions.activate = senderBundleId;
     }
 
-    if (this.clickOpenUrl) {
+    const terminal = metadata?.terminal as string | undefined;
+    let handled = false;
+
+    if (terminal === 'WarpTerminal' || (typeof terminal === 'string' && terminal.toLowerCase().includes('warp'))) {
+      notificationOptions.execute = "open -a Warp";
+      handled = true;
+    } else if (terminal === 'Apple_Terminal') {
+      notificationOptions.execute = "open -a Terminal";
+      handled = true;
+    } else if (terminal === 'iTerm.app') {
+      notificationOptions.execute = "open -a iTerm";
+      handled = true;
+    } else if (terminal === 'Hyper') {
+      notificationOptions.execute = "open -a Hyper";
+      handled = true;
+    }
+
+    if (!handled && this.clickOpenUrl) {
       notificationOptions.open = this.clickOpenUrl;
-    } else {
+    } else if (!handled) {
       const activateCommand = this.buildMacActivateCommand();
       if (activateCommand) {
         notificationOptions.execute = activateCommand;
@@ -111,9 +128,11 @@ export class SystemNotifService {
     return new Promise((resolve) => {
       this.macNotificationCenter.notify(
         notificationOptions,
-        (_error, response, metadata) => {
-          if (this.isActivationResponse(response, metadata?.activationType)) {
-            this.onNotificationClick();
+        (_error, response, meta) => {
+          if (this.isActivationResponse(response, meta?.activationType)) {
+            if (!handled) {
+              this.onNotificationClick();
+            }
           }
 
           resolve();
@@ -132,6 +151,11 @@ export class SystemNotifService {
   }
 
   private detectMacSenderBundleId(): string | undefined {
+    const termInfo = this.detectTerminalInfo();
+    if (termInfo?.bundleId) {
+      return termInfo.bundleId;
+    }
+
     const signals = [
       this.hostAppName,
       process.env.VSCODE_CLI_APPNAME ?? '',
@@ -155,11 +179,6 @@ export class SystemNotifService {
       return 'com.microsoft.VSCode';
     }
 
-    const termInfo = this.detectTerminalInfo();
-    if (termInfo?.bundleId) {
-      return termInfo.bundleId;
-    }
-
     return undefined;
   }
 
@@ -174,6 +193,11 @@ export class SystemNotifService {
   }
 
   private detectMacAppName(): string | undefined {
+    const termInfo = this.detectTerminalInfo();
+    if (termInfo?.appName) {
+      return termInfo.appName;
+    }
+
     const signals = [
       this.hostAppName,
       process.env.VSCODE_CLI_APPNAME ?? '',
@@ -195,11 +219,6 @@ export class SystemNotifService {
 
     if (signals.includes('Visual Studio Code') || signals.includes('VS Code') || signals.includes('Code')) {
       return 'Visual Studio Code';
-    }
-
-    const termInfo = this.detectTerminalInfo();
-    if (termInfo?.appName) {
-      return termInfo.appName;
     }
 
     const termProgram = process.env.TERM_PROGRAM;
@@ -228,7 +247,7 @@ export class SystemNotifService {
       return { bundleId: 'co.zeit.hyper', appName: 'Hyper' };
     }
 
-    if (termProgram === 'WarpTerminal') {
+    if (termProgram === 'WarpTerminal' || termProgram.includes('Warp')) {
       return { bundleId: 'dev.warp.Warp-Terminal', appName: 'Warp' };
     }
 

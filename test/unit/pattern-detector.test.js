@@ -18,6 +18,7 @@ test('detects permission prompts from streaming output', () => {
 test('detects completion phrases from recent output lines', () => {
   const detector = new PatternDetector({ agent: 'codex' });
 
+  detector.ingest('Thinking...\n');
   const events = detector.ingest('Applying patch\nDone\n');
 
   assert.equal(events.length, 1);
@@ -28,6 +29,7 @@ test('detects completion phrases from recent output lines', () => {
 test('emits process completion on successful exit', () => {
   const detector = new PatternDetector({ agent: 'copilot' });
 
+  detector.ingest('Applying changes...\n');
   const events = detector.onExit(0);
 
   assert.equal(events.length, 1);
@@ -142,4 +144,25 @@ test('dedupes repeated signals within the cooldown window', () => {
   assert.equal(detector.ingest('Waiting for confirmation [y/N]').length, 0);
   time += 5_000;
   assert.equal(detector.ingest('Waiting for confirmation [y/N]').length, 1);
+});
+
+test('clearing buffer prevents loops when same text is re-ingested after cooldown', () => {
+  let time = 10_000;
+  const detector = new PatternDetector({
+    agent: 'gemini',
+    cooldownMs: 5_000,
+    now: () => time,
+  });
+
+  // First detection
+  assert.equal(detector.ingest('gemini: Thinking...\nDone.\n').length, 1);
+  
+  // Wait for cooldown
+  time += 6_000;
+  
+  // Ingest empty chunk - should NOT re-emit because buffer was cleared
+  assert.equal(detector.ingest('').length, 0);
+  
+  // Even if we ingest a newline
+  assert.equal(detector.ingest('\n').length, 0);
 });

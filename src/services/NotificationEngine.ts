@@ -38,7 +38,7 @@ export class NotificationEngine {
 
       void this.notificationService?.showPermissionRequest(this.formatMessage(event)).then(settle).catch(() => undefined);
       void this.systemNotifService
-        .showPermissionRequest(this.formatMessage(event), critical)
+        .showPermissionRequest(this.formatMessage(event), critical, event.metadata)
         .then(settle)
         .catch(() => undefined);
 
@@ -57,7 +57,7 @@ export class NotificationEngine {
 
     void this.notificationService?.showTaskCompleted(this.formatMessage(event))
       .then((action) => this.handleNotificationAction(action), () => undefined);
-    this.systemNotifService.notifyCompletion(this.formatMessage(event), critical);
+    this.systemNotifService.notifyCompletion(this.formatMessage(event), critical, event.metadata);
 
     if (!this.systemNotifService.usesNativeSound()) {
       this.soundService.playTaskComplete();
@@ -73,7 +73,7 @@ export class NotificationEngine {
 
     void this.notificationService?.showAttentionRequired(this.formatMessage(event))
       .then((action) => this.handleNotificationAction(action), () => undefined);
-    this.systemNotifService.notifyAttention(this.formatMessage(event), critical);
+    this.systemNotifService.notifyAttention(this.formatMessage(event), critical, event.metadata);
 
     if (!this.systemNotifService.usesNativeSound()) {
       this.soundService.playPermissionAlert();
