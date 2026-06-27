@@ -7,6 +7,45 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <!-- Bell Icon -->
+                <svg class="nav-logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="nav-brand">Bellsy</span>
+            </a>
+
+            <div class="nav-links-wrapper" id="navLinksWrapper">
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#install">Install</a></li>
+                    <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                </ul>
+                <a href="#install" class="btn btn-primary nav-cta">Get Extension</a>
+            </div>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span class="hamburger"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Placeholder sections to be populated in subsequent phases -->
+    <main>
+        <section id="hero" style="min-height: 100vh; padding-top: 120px;"></section>
+        <section id="features" style="min-height: 50vh;"></section>
+        <section id="how-it-works" style="min-height: 50vh;"></section>
+        <section id="install" style="min-height: 50vh;"></section>
+    </main>
+
     <script src="js/main.js"></script>
     <script src="js/animations.js"></script>
 </body>
