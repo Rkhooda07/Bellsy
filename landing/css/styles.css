@@ -945,3 +945,141 @@ button, input, select, textarea {
   font-size: 13px;
   color: var(--text-faint);
 }
+
+/* ==========================================================================
+   BREAKPOINTS (Phase 11)
+   ========================================================================== */
+
+/* Tablet view */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .steps-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .steps-connector {
+    display: none;
+  }
+  
+  .demo-players-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* Mobile view */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+  
+  .nav-links-wrapper {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    height: 100vh;
+    background: var(--surface);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    transition: right 0.3s ease;
+    z-index: 1000;
+  }
+  
+  .nav-links-wrapper.active {
+    right: 0;
+  }
+  
+  .nav-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .nav-links a {
+    font-size: 18px;
+  }
+  
+  .hero-title {
+    font-size: clamp(32px, 8vw, 48px);
+  }
+  
+  .hero-ctas {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .hero-ctas .btn {
+    width: 100%;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .config-header-row {
+    display: none;
+  }
+  
+  .config-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 16px;
+    align-items: flex-start;
+  }
+  
+  .config-name {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  
+  .config-type::before {
+    content: "Type: ";
+    color: var(--text-muted);
+  }
+  
+  .config-default::before {
+    content: "Default: ";
+    color: var(--text-muted);
+    margin-right: 6px;
+  }
+  
+  .config-desc::before {
+    content: "Description: ";
+    color: var(--text-muted);
+  }
+}
+
+/* Small mobile view */
+@media (max-width: 480px) {
+  .hero {
+    padding: 100px 16px 48px;
+  }
+  
+  .demo-section, .how-it-works-section, .features-section, .install-section {
+    padding: 72px 0;
+  }
+  
+  .config-section {
+    padding: 48px 0;
+  }
+  
+  .footer {
+    padding: 48px 0 24px;
+  }
+  
+  .terminal-block {
+    max-width: 100%;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+}
