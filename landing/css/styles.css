@@ -229,22 +229,34 @@ button, input, select, textarea {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
   position: relative;
   background-image: radial-gradient(circle, #1E2025 1px, transparent 1px);
   background-size: 24px 24px;
-  padding: 120px 24px 80px;
+  padding: 120px 0 80px;
   overflow: hidden;
 }
 
-.hero-content {
-  max-width: 780px;
+.hero-container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 48px;
+  align-items: center;
   width: 100%;
+  z-index: 2;
+}
+
+.hero-left {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hero-right {
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
-  text-align: center;
-  z-index: 2;
+  width: 100%;
 }
 
 .pill-label {
@@ -266,11 +278,12 @@ button, input, select, textarea {
 .hero-title {
   font-family: var(--font-head);
   font-weight: 600;
-  font-size: clamp(42px, 7vw, 80px);
+  font-size: clamp(38px, 6vw, 68px);
   color: var(--text-primary);
   letter-spacing: -0.03em;
   line-height: 1.05;
   margin-bottom: 24px;
+  text-align: left;
 }
 
 .hero-title span {
@@ -278,36 +291,44 @@ button, input, select, textarea {
 }
 
 .hero-subtitle {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--text-body);
-  max-width: 560px;
+  max-width: 540px;
   line-height: 1.6;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  text-align: left;
 }
 
 .hero-ctas {
   display: flex;
   gap: 12px;
-  margin-bottom: 48px;
-  justify-content: center;
+  margin-bottom: 0;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 .terminal-block {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   background: #0A0B0D;
   border: 0.5px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 14px 20px;
+  padding: 16px 20px;
   text-align: left;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
 }
 
 .terminal-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.terminal-dots-wrapper {
   display: flex;
   gap: 6px;
-  margin-bottom: 12px;
+  align-items: center;
 }
 
 .terminal-dot {
@@ -315,6 +336,13 @@ button, input, select, textarea {
   height: 8px;
   border-radius: 50%;
   background: #2C2F38;
+}
+
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 .terminal-body {
@@ -325,10 +353,10 @@ button, input, select, textarea {
 }
 
 .terminal-line {
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
+  margin-bottom: 6px;
+  display: block;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .terminal-prompt {
@@ -952,6 +980,28 @@ button, input, select, textarea {
 
 /* Tablet view */
 @media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .hero-left {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .hero-right {
+    justify-content: center;
+  }
+  
+  .hero-title, .hero-subtitle {
+    text-align: center;
+  }
+  
+  .hero-ctas {
+    justify-content: center;
+  }
+
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }

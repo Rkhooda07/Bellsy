@@ -80,9 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Typewriter: hero terminal second line
-    const textToType = "bellsy-run claude";
+    // Typewriter: hero terminal installation sequence
+    const textToType = "npm install -g bellsy";
     const typewriterElement = document.getElementById('typewriter-text');
+    const output1 = document.getElementById('terminal-output-1');
+    const output2 = document.getElementById('terminal-output-2');
+    const cursor = document.querySelector('.typewriter-cursor');
+
     if (typewriterElement) {
         setTimeout(() => {
             let index = 0;
@@ -92,6 +96,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     index++;
                 } else {
                     clearInterval(timer);
+                    
+                    // Show line 2 after 500ms
+                    setTimeout(() => {
+                        if (output1) {
+                            output1.style.display = 'block';
+                            if (typeof gsap !== 'undefined') {
+                                gsap.fromTo(output1, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                            } else {
+                                output1.style.opacity = '1';
+                            }
+                        }
+                        
+                        // Show line 3 after 400ms more
+                        setTimeout(() => {
+                            if (output2) {
+                                output2.style.display = 'block';
+                                if (typeof gsap !== 'undefined') {
+                                    gsap.fromTo(output2, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                                } else {
+                                    output2.style.opacity = '1';
+                                }
+                            }
+                            
+                            // Clean up cursor blinking
+                            if (cursor) {
+                                cursor.style.animation = 'none';
+                                cursor.style.opacity = '0';
+                            }
+                        }, 400);
+                        
+                    }, 500);
                 }
             }, 40); // 40ms per character
         }, 1200); // 1.2s delay
