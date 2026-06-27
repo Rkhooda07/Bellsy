@@ -875,3 +875,73 @@ button, input, select, textarea {
   color: var(--text-body);
   font-size: 14px;
 }
+
+/* Footer Section */
+.footer {
+  background: #0A0B0D;
+  border-top: 1px solid var(--border);
+  padding: 60px 0 40px;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.footer-brand-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.footer-tagline {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+.footer-links-column {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.footer-icon-link {
+  color: var(--text-faint);
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+}
+
+.footer-icon-link:hover {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-bottom-left, .footer-bottom-right {
+  font-size: 13px;
+  color: var(--text-faint);
+}
