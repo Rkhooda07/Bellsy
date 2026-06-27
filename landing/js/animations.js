@@ -1,6 +1,7 @@
-// Bellsy Scroll Progress and Scroll State Handler
+// Bellsy Scroll Progress, Scroll State Handler, and GSAP Animations
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Navbar Scroll Progress & State Handler
     const navbar = document.getElementById('navbar');
     const scrollProgress = document.getElementById('scrollProgress');
 
@@ -26,7 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize state on load
     handleScroll();
-
-    // Listen to scroll events
     window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // GSAP Animations
+    if (typeof gsap !== 'undefined') {
+        // Register ScrollTrigger plugin
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero stagger reveal upward
+        gsap.from('.hero-animate', {
+            y: 24,
+            opacity: 0,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+    }
+
+    // Typewriter: hero terminal second line
+    const textToType = "bellsy-run claude";
+    const typewriterElement = document.getElementById('typewriter-text');
+    if (typewriterElement) {
+        setTimeout(() => {
+            let index = 0;
+            const timer = setInterval(() => {
+                if (index < textToType.length) {
+                    typewriterElement.textContent += textToType.charAt(index);
+                    index++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 40); // 40ms per character
+        }, 1200); // 1.2s delay
+    }
 });

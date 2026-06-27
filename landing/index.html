@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bellsy — Intelligent AI Agent Notifications</title>
+    <!-- Fonts -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- GSAP & ScrollTrigger from cdnjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
 <body>
     <!-- Scroll Progress Bar -->
@@ -38,9 +42,47 @@
         </div>
     </nav>
 
-    <!-- Placeholder sections to be populated in subsequent phases -->
     <main>
-        <section id="hero" style="min-height: 100vh; padding-top: 120px;"></section>
+        <!-- Hero Section -->
+        <section class="hero" id="hero">
+            <div class="hero-content">
+                <div class="pill-label hero-animate">[ AI Agent Notifications ]</div>
+                
+                <h1 class="hero-title hero-animate">
+                    <span>Your AI agents are done.</span>
+                    <span>You just didn't know.</span>
+                </h1>
+                
+                <p class="hero-subtitle hero-animate">
+                    Bellsy wraps any local AI agent or CLI process and surfaces completions, failures, and approval requests as native notifications — so you can stay in flow.
+                </p>
+                
+                <div class="hero-ctas hero-animate">
+                    <a href="#install" class="btn btn-primary">Install CLI</a>
+                    <a href="#install" class="btn btn-secondary">Get VS Code Extension</a>
+                </div>
+                
+                <div class="terminal-block hero-animate">
+                    <div class="terminal-header">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">$</span>
+                            <span>npm install -g bellsy</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">$</span>
+                            <span id="typewriter-text"></span><span class="typewriter-cursor"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Placeholders for remaining sections -->
         <section id="features" style="min-height: 50vh;"></section>
         <section id="how-it-works" style="min-height: 50vh;"></section>
         <section id="install" style="min-height: 50vh;"></section>

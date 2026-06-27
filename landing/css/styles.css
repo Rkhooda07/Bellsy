@@ -223,3 +223,130 @@ button, input, select, textarea {
   transform: rotate(-45deg);
   bottom: 0;
 }
+
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-image: radial-gradient(circle, #1E2025 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding: 120px 24px 80px;
+  overflow: hidden;
+}
+
+.hero-content {
+  max-width: 780px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 2;
+}
+
+.pill-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: clamp(42px, 7vw, 80px);
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 24px;
+}
+
+.hero-title span {
+  display: block;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--text-body);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 48px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.terminal-block {
+  width: 100%;
+  max-width: 420px;
+  background: #0A0B0D;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  text-align: left;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-header {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.terminal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2C2F38;
+}
+
+.terminal-body {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.terminal-prompt {
+  color: var(--text-faint);
+  margin-right: 8px;
+  user-select: none;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 15px;
+  background: var(--accent);
+  margin-left: 2px;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { background-color: transparent }
+  50% { background-color: var(--accent) }
+}
