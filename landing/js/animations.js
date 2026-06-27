@@ -42,6 +42,42 @@ document.addEventListener('DOMContentLoaded', () => {
             stagger: 0.1,
             ease: "power2.out"
         });
+
+        // Section reveals and staggered children reveals
+        gsap.utils.toArray('.reveal').forEach(element => {
+            if (element.classList.contains('stagger-children')) {
+                // Animate child elements inside the staggered container
+                // We filter only elements with actual height/visibility to avoid blank animations
+                const children = Array.from(element.children).filter(child => {
+                    return !child.classList.contains('steps-connector'); // exclude connector line
+                });
+                
+                gsap.from(children, {
+                    scrollTrigger: {
+                        trigger: element,
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                    },
+                    y: 32,
+                    opacity: 0,
+                    duration: 0.6,
+                    stagger: 0.12,
+                    ease: "power2.out"
+                });
+            } else {
+                gsap.from(element, {
+                    scrollTrigger: {
+                        trigger: element,
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                    },
+                    y: 32,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: "power2.out"
+                });
+            }
+        });
     }
 
     // Typewriter: hero terminal second line
