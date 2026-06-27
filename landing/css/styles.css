@@ -674,3 +674,120 @@ button, input, select, textarea {
   color: var(--text-muted);
   line-height: 1.6;
 }
+
+/* Install Section */
+.install-section {
+  background: var(--surface);
+  padding: 120px 0;
+  border-top: 0.5px solid var(--border);
+}
+
+.install-tabs-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 56px;
+}
+
+.install-tab-btn {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.install-tab-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-muted);
+}
+
+.install-tab-btn.active {
+  background: var(--accent);
+  color: #0C0D0F;
+  border-color: var(--accent);
+}
+
+.install-tab-content {
+  display: none;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.install-tab-content.active {
+  display: block;
+}
+
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.install-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.install-step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.install-step-number {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.install-step-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.install-step-text {
+  font-size: 15px;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+.marketplace-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.marketplace-badge:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.kbd-key {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  border: 0.5px solid var(--border-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-primary);
+}

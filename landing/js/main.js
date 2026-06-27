@@ -48,11 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetVid = targetItem.querySelector('video');
                 if (targetVid) {
                     targetVid.currentTime = 0;
-                    // Play if not failed
                     if (!targetItem.classList.contains('video-failed')) {
-                        targetVid.play().catch(() => {
-                            // Autoplay restriction check
-                        });
+                        targetVid.play().catch(() => {});
                     }
                 }
             }
@@ -100,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pauseIcon) pauseIcon.style.display = 'none';
             });
 
-            // Video error handling -> fallback placeholder
             video.addEventListener('error', () => {
                 item.classList.add('video-failed');
             });
@@ -112,12 +108,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            // Fallback checking in case error event doesn't fire but state is error
             setTimeout(() => {
                 if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
                     item.classList.add('video-failed');
                 }
             }, 1000);
         }
+    });
+
+    // Install Tab Switcher
+    const installTabBtns = document.querySelectorAll('.install-tab-btn');
+    installTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            
+            // Deactivate other tabs
+            installTabBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.install-tab-content').forEach(c => c.classList.remove('active'));
+
+            // Activate current
+            btn.classList.add('active');
+            const targetContent = document.getElementById(targetTab);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
     });
 });
