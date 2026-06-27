@@ -82,6 +82,158 @@
             </div>
         </section>
 
+        <!-- Demo Section -->
+        <section class="demo-section reveal" id="demo">
+            <div class="container">
+                <div class="demo-header">
+                    <div class="pill-label">[ See It In Action ]</div>
+                    <h2 class="demo-title-text">Watch Bellsy work</h2>
+                </div>
+
+                <div class="demo-players-grid">
+                    <!-- Player 1 -->
+                    <div class="demo-player-container" id="player1">
+                        <div class="player-tabs">
+                            <button class="player-tab-btn active" data-target="cli">CLI Demo</button>
+                            <button class="player-tab-btn" data-target="vscode">VS Code Demo</button>
+                        </div>
+                        <div class="video-wrapper">
+                            <!-- CLI Video -->
+                            <div class="video-item active" data-video="cli">
+                                <video autoplay loop muted playsinline class="demo-video">
+                                    <source src="assets/videos/cli-demo.mp4" type="video/mp4">
+                                </video>
+                                <div class="video-overlay">
+                                    <button class="play-pause-btn" aria-label="Toggle Play">
+                                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                                            <rect x="6" y="4" width="4" height="16"></rect>
+                                            <rect x="14" y="4" width="4" height="16"></rect>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="video-placeholder">
+                                    <svg class="placeholder-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                                    </svg>
+                                    <span>Video coming soon</span>
+                                </div>
+                            </div>
+                            <!-- VS Code Video -->
+                            <div class="video-item" data-video="vscode">
+                                <video loop muted playsinline class="demo-video">
+                                    <source src="assets/videos/vscode-demo.mp4" type="video/mp4">
+                                </video>
+                                <div class="video-overlay">
+                                    <button class="play-pause-btn" aria-label="Toggle Play">
+                                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                                            <rect x="6" y="4" width="4" height="16"></rect>
+                                            <rect x="14" y="4" width="4" height="16"></rect>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="video-placeholder">
+                                    <svg class="placeholder-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                                    </svg>
+                                    <span>Video coming soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Player 2 -->
+                    <div class="demo-player-container" id="player2">
+                        <div class="player-tabs">
+                            <button class="player-tab-btn" data-target="cli">CLI Demo</button>
+                            <button class="player-tab-btn active" data-target="vscode">VS Code Demo</button>
+                        </div>
+                        <div class="video-wrapper">
+                            <!-- CLI Video -->
+                            <div class="video-item" data-video="cli">
+                                <video loop muted playsinline class="demo-video">
+                                    <source src="assets/videos/cli-demo.mp4" type="video/mp4">
+                                </video>
+                                <div class="video-overlay">
+                                    <button class="play-pause-btn" aria-label="Toggle Play">
+                                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                                            <rect x="6" y="4" width="4" height="16"></rect>
+                                            <rect x="14" y="4" width="4" height="16"></rect>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="video-placeholder">
+                                    <svg class="placeholder-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                                    </svg>
+                                    <span>Video coming soon</span>
+                                </div>
+                            </div>
+                            <!-- VS Code Video -->
+                            <div class="video-item active" data-video="vscode">
+                                <video autoplay loop muted playsinline class="demo-video">
+                                    <source src="assets/videos/vscode-demo.mp4" type="video/mp4">
+                                </video>
+                                <div class="video-overlay">
+                                    <button class="play-pause-btn" aria-label="Toggle Play">
+                                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                                            <rect x="6" y="4" width="4" height="16"></rect>
+                                            <rect x="14" y="4" width="4" height="16"></rect>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="video-placeholder">
+                                    <svg class="placeholder-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                                    </svg>
+                                    <span>Video coming soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Placeholders for remaining sections -->
         <section id="features" style="min-height: 50vh;"></section>
         <section id="how-it-works" style="min-height: 50vh;"></section>
