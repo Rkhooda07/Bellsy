@@ -80,55 +80,108 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Typewriter: hero terminal installation sequence
+    // Typewriter: hero terminal installation sequence with loop
     const textToType = "npm install -g bellsy";
     const typewriterElement = document.getElementById('typewriter-text');
     const output1 = document.getElementById('terminal-output-1');
     const output2 = document.getElementById('terminal-output-2');
     const cursor = document.querySelector('.typewriter-cursor');
 
-    if (typewriterElement) {
-        setTimeout(() => {
-            let index = 0;
-            const timer = setInterval(() => {
+    const TYPE_SPEED = 40;
+    const DELETE_SPEED = 25;
+    const DELAY_AFTER_TYPING = 2000;
+    const DELAY_AFTER_OUTPUT = 2500;
+    const DELAY_BEFORE_RETYPE = 3000;
+
+    function typeWriterLoop() {
+        if (!typewriterElement) return;
+
+        let index = 0;
+        let isDeleting = false;
+
+        function type() {
+            if (!isDeleting) {
                 if (index < textToType.length) {
                     typewriterElement.textContent += textToType.charAt(index);
                     index++;
+                    setTimeout(type, TYPE_SPEED);
                 } else {
-                    clearInterval(timer);
-                    
-                    // Show line 2 after 500ms
-                    setTimeout(() => {
-                        if (output1) {
-                            output1.style.display = 'block';
-                            if (typeof gsap !== 'undefined') {
-                                gsap.fromTo(output1, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-                            } else {
-                                output1.style.opacity = '1';
-                            }
-                        }
-                        
-                        // Show line 3 after 400ms more
-                        setTimeout(() => {
-                            if (output2) {
-                                output2.style.display = 'block';
-                                if (typeof gsap !== 'undefined') {
-                                    gsap.fromTo(output2, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-                                } else {
-                                    output2.style.opacity = '1';
-                                }
-                            }
-                            
-                            // Clean up cursor blinking
-                            if (cursor) {
-                                cursor.style.animation = 'none';
-                                cursor.style.opacity = '0';
-                            }
-                        }, 400);
-                        
-                    }, 500);
+                    isDeleting = false;
+                    showOutputs();
                 }
-            }, 40); // 40ms per character
-        }, 1200); // 1.2s delay
+            } else {
+                if (index > 0) {
+                    typewriterElement.textContent = textToType.substring(0, index - 1);
+                    index--;
+                    setTimeout(type, DELETE_SPEED);
+                } else {
+                    isDeleting = false;
+                    hideOutputs();
+                    setTimeout(type, DELAY_BEFORE_RETYPE);
+                }
+            }
+        }
+
+        function showOutputs() {
+            if (cursor) {
+                cursor.style.animation = 'none';
+                cursor.style.opacity = '0';
+            }
+
+            setTimeout(() => {
+                if (output1) {
+                    output1.style.display = 'block';
+                    if (typeof gsap !== 'undefined') {
+                        gsap.fromTo(output1, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                    } else {
+                        output1.style.opacity = '1';
+                    }
+                }
+
+                setTimeout(() => {
+                    if (output2) {
+                        output2.style.display = 'block';
+                        if (typeof gsap !== 'undefined') {
+                            gsap.fromTo(output2, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                        } else {
+                            output2.style.opacity = '1';
+                        }
+                    }
+
+                    setTimeout(() => {
+                        isDeleting = true;
+                        type();
+                    }, DELAY_AFTER_OUTPUT);
+                }, 300);
+            }, DELAY_AFTER_TYPING);
+        }
+
+        function hideOutputs() {
+            const hideElement = (el, delay = 0) => {
+                if (!el) return;
+                setTimeout(() => {
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(el, { opacity: 0, duration: 0.3, onComplete: () => {
+                            el.style.display = 'none';
+                        } });
+                    } else {
+                        el.style.opacity = '0';
+                        setTimeout(() => { el.style.display = 'none'; }, 300);
+                    }
+                }, delay);
+            };
+
+            hideElement(output2, 0);
+            hideElement(output1, 150);
+
+            if (cursor) {
+                cursor.style.animation = 'blink 0.8s step-end infinite';
+                cursor.style.opacity = '1';
+            }
+        }
+
+        setTimeout(type, 1200);
     }
+
+    typeWriterLoop();
 });
