@@ -145,13 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const windowHeight = window.innerHeight;
         const docHeight = document.documentElement.scrollHeight;
 
-        // Show/hide indicator based on scroll position
-        if (scrollY > windowHeight * 0.3) {
-            scrollIndicator.classList.add('visible');
-        } else {
-            scrollIndicator.classList.remove('visible');
-        }
-
         // Find active section
         let activeSection = 'hero';
         sections.forEach((sectionId, index) => {

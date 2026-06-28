@@ -77,12 +77,6 @@ button, input, select, textarea {
   top: 50%;
   transform: translateY(-50%);
   z-index: 998;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.scroll-indicator.visible {
   opacity: 1;
   visibility: visible;
 }
