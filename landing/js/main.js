@@ -134,4 +134,75 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Vertical Scroll Indicator
+    const scrollIndicator = document.getElementById('scrollIndicator');
+    const indicatorItems = document.querySelectorAll('.scroll-indicator-item');
+    const sections = ['hero', 'demo', 'how-it-works', 'features', 'install', 'config'];
+
+    function updateScrollIndicator() {
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+
+        // Show/hide indicator based on scroll position
+        if (scrollY > windowHeight * 0.3) {
+            scrollIndicator.classList.add('visible');
+        } else {
+            scrollIndicator.classList.remove('visible');
+        }
+
+        // Find active section
+        let activeSection = 'hero';
+        sections.forEach((sectionId, index) => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const rect = section.getBoundingClientRect();
+                const sectionTop = rect.top + scrollY;
+                const sectionHeight = rect.height;
+                const sectionCenter = sectionTop + sectionHeight / 2;
+                const viewportCenter = scrollY + windowHeight / 2;
+
+                if (Math.abs(sectionCenter - viewportCenter) < windowHeight / 2) {
+                    activeSection = sectionId;
+                }
+            }
+        });
+
+        // Update active item
+        indicatorItems.forEach(item => {
+            const itemSection = item.getAttribute('data-section');
+            if (itemSection === activeSection) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    // Smooth scroll on indicator click
+    indicatorItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = item.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Throttled scroll handler
+    let scrollIndicatorTimeout;
+    window.addEventListener('scroll', () => {
+        if (!scrollIndicatorTimeout) {
+            scrollIndicatorTimeout = setTimeout(() => {
+                updateScrollIndicator();
+                scrollIndicatorTimeout = null;
+            }, 10);
+        }
+    }, { passive: true });
+
+    // Initial check
+    updateScrollIndicator();
 });

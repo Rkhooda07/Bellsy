@@ -31,6 +31,12 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 body {
@@ -62,6 +68,118 @@ button, input, select, textarea {
   width: 0%;
   z-index: 1000;
   transition: width 0.1s ease-out;
+}
+
+/* Vertical Scroll Indicator */
+.scroll-indicator {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.scroll-indicator.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-indicator-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 4px;
+  background: transparent;
+}
+
+.scroll-indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.scroll-indicator-item:hover {
+  color: var(--text-primary);
+}
+
+.scroll-indicator-bar {
+  width: 14px;
+  height: 3px;
+  background: var(--border-muted);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.scroll-indicator-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--accent);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+}
+
+.scroll-indicator-item:hover .scroll-indicator-bar,
+.scroll-indicator-item.active .scroll-indicator-bar {
+  width: 36px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.scroll-indicator-item:hover .scroll-indicator-bar::after,
+.scroll-indicator-item.active .scroll-indicator-bar::after {
+  transform: scaleX(1);
+}
+
+.scroll-indicator-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  color: var(--text-muted);
+}
+
+.scroll-indicator-item:hover .scroll-indicator-label,
+.scroll-indicator-item.active .scroll-indicator-label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--accent);
+  animation: labelFadeOut 2s ease forwards;
+  animation-delay: 1.5s;
+}
+
+@keyframes labelFadeOut {
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(8px); }
+}
+
+@media (max-width: 1024px) {
+  .scroll-indicator {
+    display: none;
+  }
 }
 
 /* Containers */
