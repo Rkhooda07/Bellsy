@@ -73,7 +73,7 @@ button, input, select, textarea {
 /* Vertical Scroll Indicator */
 .scroll-indicator {
   position: fixed;
-  right: 24px;
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
   z-index: 998;
@@ -92,19 +92,20 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 8px 4px;
+  padding: 8px 16px 8px 8px;
   background: transparent;
 }
 
 .scroll-indicator-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: var(--text-muted);
   transition: all 0.2s ease;
-  padding: 4px 8px 4px 4px;
+  padding: 4px 4px 4px 12px;
   border-radius: var(--radius-sm);
+  justify-content: flex-end;
 }
 
 .scroll-indicator-item:hover {
@@ -112,40 +113,39 @@ button, input, select, textarea {
 }
 
 .scroll-indicator-bar {
-  width: 14px;
+  width: 38px;
   height: 3px;
   background: var(--border-muted);
   border-radius: 2px;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  transform-origin: right;
   position: relative;
-}
-
-.scroll-indicator-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--accent);
-  border-radius: 2px;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
 }
 
 .scroll-indicator-item:hover .scroll-indicator-bar,
 .scroll-indicator-item.active .scroll-indicator-bar {
-  width: 36px;
+  width: 48px;
   height: 4px;
   background: var(--accent);
   border-radius: 2px;
 }
 
-.scroll-indicator-item:hover .scroll-indicator-bar::after,
-.scroll-indicator-item.active .scroll-indicator-bar::after {
+.scroll-indicator-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-indicator-item:hover .scroll-indicator-bar::before,
+.scroll-indicator-item.active .scroll-indicator-bar::before {
   transform: scaleX(1);
 }
 
@@ -157,9 +157,10 @@ button, input, select, textarea {
   text-transform: uppercase;
   white-space: nowrap;
   opacity: 0;
-  transform: translateX(8px);
+  transform: translateX(-8px);
   transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
   color: var(--text-muted);
+  order: -1;
 }
 
 .scroll-indicator-item:hover .scroll-indicator-label,
@@ -173,7 +174,7 @@ button, input, select, textarea {
 
 @keyframes labelFadeOut {
   0% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0; transform: translateX(8px); }
+  100% { opacity: 0; transform: translateX(-8px); }
 }
 
 @media (max-width: 1024px) {
