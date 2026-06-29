@@ -58,18 +58,6 @@ button, input, select, textarea {
   font-family: inherit;
 }
 
-/* Scroll Progress Bar */
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background: var(--accent);
-  width: 0%;
-  z-index: 1000;
-  transition: width 0.1s ease-out;
-}
-
 /* Vertical Scroll Indicator */
 .scroll-indicator {
   position: fixed;
@@ -259,8 +247,8 @@ button, input, select, textarea {
 }
 
 .nav-logo-icon {
-  color: var(--accent);
-  fill: var(--accent-tint);
+  display: block;
+  border-radius: 6px;
 }
 
 .nav-links-wrapper {
