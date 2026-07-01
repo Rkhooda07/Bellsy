@@ -24,11 +24,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Tab Slider Animation
+    function updateTabSlider(tabsInner) {
+        if (!tabsInner) return;
+        const slider = tabsInner.querySelector('.tab-slider');
+        const activeBtn = tabsInner.querySelector('.player-tab-btn.active');
+        if (slider && activeBtn) {
+            slider.style.width = `${activeBtn.offsetWidth}px`;
+            // The 4px offset is accounted for by the wrapper's padding in CSS,
+            // but offsetLeft is relative to the offsetParent (which is the .player-tabs-inner).
+            slider.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+        }
+    }
+
+    // Initialize sliders and bind resize
+    document.querySelectorAll('.player-tabs-inner').forEach(updateTabSlider);
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.player-tabs-inner').forEach(updateTabSlider);
+    });
+
     // Video Tab Switching
     const tabBtns = document.querySelectorAll('.player-tab-btn');
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const container = btn.closest('.demo-player-container');
+            const container = btn.closest('.demo-players-grid');
             const target = btn.getAttribute('data-target');
             
             // Deactivate current tabs and items
@@ -42,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Activate new tab and item
             btn.classList.add('active');
+            updateTabSlider(btn.parentElement);
             const targetItem = container.querySelector(`.video-item[data-video="${target}"]`);
             if (targetItem) {
                 targetItem.classList.add('active');
