@@ -463,6 +463,18 @@ button, input, select, textarea {
   background: #2C2F38;
 }
 
+.terminal-dot:nth-child(1) {
+  background: #FF5F56;
+}
+
+.terminal-dot:nth-child(2) {
+  background: #FFBD2E;
+}
+
+.terminal-dot:nth-child(3) {
+  background: #27C93F;
+}
+
 .terminal-title {
   font-family: var(--font-mono);
   font-size: 11px;
