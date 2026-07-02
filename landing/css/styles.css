@@ -752,6 +752,20 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(232, 137, 74, 0.4);
+  background: var(--surface-hover);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(232, 137, 74, 0.05) inset;
+}
+
+.step-card:hover .step-icon-wrapper {
+  transform: scale(1.05);
+  background: rgba(232, 137, 74, 0.1);
+  border-color: rgba(232, 137, 74, 0.3);
 }
 
 .step-num {
@@ -772,6 +786,7 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s ease, border-color 0.3s ease;
 }
 
 .step-icon {
@@ -823,12 +838,18 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .feature-card:hover {
-  border-color: rgba(232, 137, 74, 0.35);
+  transform: translateY(-4px);
+  border-color: rgba(232, 137, 74, 0.4);
   background: var(--surface-hover);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(232, 137, 74, 0.05) inset;
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  transform: scale(1.05);
 }
 
 .feature-icon-wrapper {
@@ -837,6 +858,7 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .feature-icon {
@@ -908,13 +930,25 @@ button, input, select, textarea {
 .install-steps {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 24px;
 }
 
 .install-step {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 28px 32px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.install-step:hover {
+  transform: translateX(6px);
+  border-color: rgba(232, 137, 74, 0.4);
+  background: var(--surface-hover);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(232, 137, 74, 0.05) inset;
 }
 
 .install-step-header {
@@ -925,8 +959,11 @@ button, input, select, textarea {
 
 .install-step-number {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--accent);
+  background: rgba(232, 137, 74, 0.1);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
 }
 
@@ -1024,6 +1061,11 @@ button, input, select, textarea {
   padding: 18px 20px;
   border-bottom: 1px solid var(--border);
   align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.config-row:hover {
+  background: var(--surface-hover);
 }
 
 .config-row:last-child {
