@@ -2,7 +2,7 @@
 
 Premium landing page for Bellsy — a VS Code extension and npm CLI tool that adds intelligent notification capabilities to long-running AI agent tasks.
 
-🔗 **Live Website:** [bellsy.vercel.app](https://bellsy.vercel.app/)
+🔗 **Live Website:** <a href="https://bellsy.vercel.app/" target="_blank">bellsy.vercel.app</a>
 
 ## Project Structure
 - `index.html`: Main page structure.
