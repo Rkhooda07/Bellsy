@@ -223,9 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Copy to Clipboard
     const copyableBlocks = document.querySelectorAll('.terminal-block.copyable');
     const copyToast = document.getElementById('copyToast');
+    const cursorTooltip = document.getElementById('cursorTooltip');
     let toastTimeout;
 
     copyableBlocks.forEach(block => {
+        // Tooltip hover tracking
+        block.addEventListener('mousemove', (e) => {
+            if (cursorTooltip) {
+                cursorTooltip.style.transform = `translate(${e.clientX + 15}px, ${e.clientY + 15}px)`;
+            }
+        });
+
+        block.addEventListener('mouseenter', (e) => {
+            if (cursorTooltip) {
+                cursorTooltip.classList.add('visible');
+                // Set initial position immediately to avoid jumping from top-left
+                cursorTooltip.style.transform = `translate(${e.clientX + 15}px, ${e.clientY + 15}px)`;
+            }
+        });
+
+        block.addEventListener('mouseleave', () => {
+            if (cursorTooltip) cursorTooltip.classList.remove('visible');
+        });
+
         block.addEventListener('click', async () => {
             const command = block.getAttribute('data-command');
             if (!command) return;
