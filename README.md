@@ -4,13 +4,13 @@
 ![Local First](https://img.shields.io/badge/Local-First-0F766E?style=for-the-badge)
 ![Codex + Gemini + Claude](https://img.shields.io/badge/Codex%20%2B%20Gemini%20%2B%20Claude-Supported-111827?style=for-the-badge)
 [![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)]
-[![Website](https://img.shields.io/badge/Website-bellsy.vercel.app-E8894A?style=for-the-badge)](https://bellsy.vercel.app/)
+<a href="https://bellsy.vercel.app/" target="_blank">![Website](https://img.shields.io/badge/Website-bellsy.vercel.app-E8894A?style=for-the-badge)</a>
 
 > **Stop babysitting your terminal.**
 >
 > Bellsy notifies you when local coding agents, scripts, and CLI tasks finish, fail, or need approval.
 
-🔗 **Live Website & Docs:** [bellsy.vercel.app](https://bellsy.vercel.app/)
+🔗 **Live Website & Docs:** <a href="https://bellsy.vercel.app/" target="_blank">bellsy.vercel.app</a>
 
 Perfect for **Codex CLI**, **Gemini CLI**, **Claude Code**, **Blackbox**, **Cursor**, build commands, test runs, and long-running local workflows.
 
