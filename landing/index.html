@@ -361,7 +361,10 @@
                                 <span class="install-step-number">01</span>
                                 <h3 class="install-step-title">Grab the package</h3>
                             </div>
-                            <div class="terminal-block">
+                            <div class="terminal-block copyable" data-command="npm install -g bellsy">
+                                <div class="terminal-copy-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
                                 <div class="terminal-header">
                                     <div class="terminal-dot"></div>
                                     <div class="terminal-dot"></div>
@@ -382,7 +385,10 @@
                                 <span class="install-step-number">02</span>
                                 <h3 class="install-step-title">Wrap any command</h3>
                             </div>
-                            <div class="terminal-block">
+                            <div class="terminal-block copyable" data-command="bellsy-run <your-command>">
+                                <div class="terminal-copy-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
                                 <div class="terminal-header">
                                     <div class="terminal-dot"></div>
                                     <div class="terminal-dot"></div>
@@ -419,11 +425,17 @@
                             </div>
                             <p class="install-step-text">Run the install command in your terminal, or grab it directly from the Visual Studio Marketplace.</p>
                             
-                            <div class="terminal-block" style="margin: 8px 0;">
+                            <div class="terminal-block copyable" data-command="code --install-extension rkhooda7.bellsy">
+                                <div class="terminal-copy-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
                                 <div class="terminal-header">
-                                    <div class="terminal-dot"></div>
-                                    <div class="terminal-dot"></div>
-                                    <div class="terminal-dot"></div>
+                                    <div class="terminal-dots-wrapper">
+                                        <div class="terminal-dot"></div>
+                                        <div class="terminal-dot"></div>
+                                        <div class="terminal-dot"></div>
+                                    </div>
+                                    <div class="terminal-title">bash</div>
                                 </div>
                                 <div class="terminal-body">
                                     <div class="terminal-line">
@@ -578,6 +590,12 @@
             </div>
         </div>
     </footer>
+
+    <!-- Toast Notification -->
+    <div class="copy-toast" id="copyToast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Copied to clipboard!
+    </div>
 
     <script src="js/main.js"></script>
     <script src="js/animations.js"></script>

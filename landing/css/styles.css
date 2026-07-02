@@ -1149,6 +1149,71 @@ button, input, select, textarea {
   color: var(--text-faint);
 }
 
+/* Copy to Clipboard Feature */
+.terminal-block.copyable {
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.terminal-block.copyable:hover {
+  border-color: rgba(232, 137, 74, 0.4);
+}
+
+.terminal-copy-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.terminal-block.copyable:hover .terminal-copy-btn {
+  opacity: 1;
+}
+
+.terminal-copy-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* Toast Notification */
+.copy-toast {
+  position: fixed;
+  top: 90px;
+  right: 24px;
+  background: rgba(12, 13, 15, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 0.5px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.copy-toast.show {
+  transform: translateX(0);
+}
+
 /* ==========================================================================
    BREAKPOINTS (Phase 11)
    ========================================================================== */

@@ -219,4 +219,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial check
     updateScrollIndicator();
+
+    // Copy to Clipboard
+    const copyableBlocks = document.querySelectorAll('.terminal-block.copyable');
+    const copyToast = document.getElementById('copyToast');
+    let toastTimeout;
+
+    copyableBlocks.forEach(block => {
+        block.addEventListener('click', async () => {
+            const command = block.getAttribute('data-command');
+            if (!command) return;
+
+            try {
+                await navigator.clipboard.writeText(command);
+                
+                // Show toast
+                if (copyToast) {
+                    copyToast.classList.add('show');
+                    clearTimeout(toastTimeout);
+                    toastTimeout = setTimeout(() => {
+                        copyToast.classList.remove('show');
+                    }, 3000);
+                }
+                
+                // Optional visual feedback on the button
+                const btn = block.querySelector('.terminal-copy-btn');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        });
+    });
 });
