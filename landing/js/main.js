@@ -284,4 +284,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Hero Buttons Tab Linking
+    const heroCliBtn = document.getElementById('heroCliBtn');
+    const heroVsCodeBtn = document.getElementById('heroVsCodeBtn');
+    
+    if (heroCliBtn) {
+        heroCliBtn.addEventListener('click', () => {
+            const cliTab = document.querySelector('.install-tab-btn[data-tab="cli-install"]');
+            if (cliTab && !cliTab.classList.contains('active')) {
+                cliTab.click();
+            }
+        });
+    }
+
+    if (heroVsCodeBtn) {
+        heroVsCodeBtn.addEventListener('click', () => {
+            const vscodeTab = document.querySelector('.install-tab-btn[data-tab="vscode-install"]');
+            if (vscodeTab && !vscodeTab.classList.contains('active')) {
+                vscodeTab.click();
+            }
+        });
+    }
 });
