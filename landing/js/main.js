@@ -261,6 +261,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         copyToast.classList.remove('show');
                     }, 3000);
                 }
+
+                // Update cursor tooltip text
+                if (cursorTooltip) {
+                    cursorTooltip.innerText = 'Copied!';
+                    setTimeout(() => {
+                        cursorTooltip.innerText = 'Click to copy';
+                    }, 2000);
+                }
                 
                 // Optional visual feedback on the button
                 const btn = block.querySelector('.terminal-copy-btn');
