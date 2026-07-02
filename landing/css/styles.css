@@ -910,8 +910,37 @@ button, input, select, textarea {
 
 .install-tab-content {
   display: none;
-  max-width: 800px;
   margin: 0 auto;
+}
+
+#cli-install {
+  max-width: 800px;
+}
+
+#vscode-install {
+  max-width: 1000px;
+}
+
+.install-methods-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.install-method-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.method-title {
+  font-family: var(--font-head);
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-left: 4px;
 }
 
 .install-tab-content.active {
@@ -1295,6 +1324,11 @@ button, input, select, textarea {
 
 /* Mobile view */
 @media (max-width: 768px) {
+  .install-methods-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
   .menu-toggle {
     display: block;
   }

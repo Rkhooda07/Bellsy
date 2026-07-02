@@ -41,7 +41,7 @@
                     <li><a href="#config">Config</a></li>
                     <li><a href="https://github.com/Rkhooda07/Bellsy" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                 </ul>
-                <a href="#install" class="btn btn-primary nav-cta">Get Extension</a>
+                <a href="#install" class="btn btn-primary nav-cta" id="navVsCodeBtn">Get Extension</a>
             </div>
 
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
@@ -423,52 +423,76 @@
 
                 <!-- VS Code Install content -->
                 <div class="install-tab-content" id="vscode-install">
-                    <div class="install-steps">
-                        <!-- Step 1 -->
-                        <div class="install-step">
-                            <div class="install-step-header">
-                                <span class="install-step-number">01</span>
-                                <h3 class="install-step-title">Install the Extension</h3>
-                            </div>
-                            <p class="install-step-text">Run the install command in your terminal, or grab it directly from the Visual Studio Marketplace.</p>
-                            
-                            <div class="terminal-block copyable" data-command="code --install-extension rkhooda7.bellsy">
-                                <div class="terminal-copy-btn">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                </div>
-                                <div class="terminal-header">
-                                    <div class="terminal-dots-wrapper">
-                                        <div class="terminal-dot"></div>
-                                        <div class="terminal-dot"></div>
-                                        <div class="terminal-dot"></div>
+                    <div class="install-methods-grid">
+                        <!-- Method 1 (Left): Manual UI Install -->
+                        <div class="install-method-col">
+                            <h3 class="method-title">Method 1: VS Code UI</h3>
+                            <div class="install-steps">
+                                <div class="install-step">
+                                    <div class="install-step-header">
+                                        <span class="install-step-number">01</span>
+                                        <h3 class="install-step-title">Find the extension</h3>
                                     </div>
-                                    <div class="terminal-title">bash</div>
+                                    <p class="install-step-text">Open VS Code <kbd class="kbd-key">→</kbd> Go to Extensions (<kbd class="kbd-key">⇧⌘X</kbd>) <kbd class="kbd-key">→</kbd> Search for <span class="code-inline">Bellsy</span>.</p>
                                 </div>
-                                <div class="terminal-body">
-                                    <div class="terminal-line">
-                                        <span class="terminal-prompt">$</span>
-                                        <span>code --install-extension rkhooda7.bellsy</span>
+                                <div class="install-step">
+                                    <div class="install-step-header">
+                                        <span class="install-step-number">02</span>
+                                        <h3 class="install-step-title">Install & Setup</h3>
                                     </div>
+                                    <p class="install-step-text">Click Install. Once done, open the command palette (<kbd class="kbd-key">⇧⌘P</kbd>) and run <span class="code-inline">"Bellsy: Setup Local Agent Notifications"</span>.</p>
+                                </div>
+                                <div class="install-step">
+                                    <div class="install-step-header">
+                                        <span class="install-step-number">03</span>
+                                        <h3 class="install-step-title">You're done</h3>
+                                    </div>
+                                    <p class="install-step-text">Lean back. Bellsy is now quietly watching your terminal in the background.</p>
                                 </div>
                             </div>
-
-                            <a href="https://marketplace.visualstudio.com/items?itemName=rkhooda7.bellsy" target="_blank" rel="noopener noreferrer" class="marketplace-badge">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;vertical-align:middle;color:var(--accent);">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                    <path d="M2 17l10 5 10-5"></path>
-                                    <path d="M2 12l10 5 10-5"></path>
-                                </svg>
-                                View in Marketplace
-                            </a>
                         </div>
 
-                        <!-- Step 2 -->
-                        <div class="install-step">
-                            <div class="install-step-header">
-                                <span class="install-step-number">02</span>
-                                <h3 class="install-step-title">Fire it up</h3>
+                        <!-- Method 2 (Right): CLI Install -->
+                        <div class="install-method-col">
+                            <h3 class="method-title">Method 2: Command Line</h3>
+                            <div class="install-steps">
+                                <div class="install-step">
+                                    <div class="install-step-header">
+                                        <span class="install-step-number">01</span>
+                                        <h3 class="install-step-title">One-liner install</h3>
+                                    </div>
+                                    <p class="install-step-text">Run the install command directly from your terminal to fetch the extension.</p>
+                                    
+                                    <div class="terminal-block copyable" data-command="code --install-extension rkhooda7.bellsy">
+                                        <div class="terminal-copy-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        </div>
+                                        <div class="terminal-header">
+                                            <div class="terminal-dots-wrapper">
+                                                <div class="terminal-dot"></div>
+                                                <div class="terminal-dot"></div>
+                                                <div class="terminal-dot"></div>
+                                            </div>
+                                            <div class="terminal-title">bash</div>
+                                        </div>
+                                        <div class="terminal-body">
+                                            <div class="terminal-line">
+                                                <span class="terminal-prompt">$</span>
+                                                <span>code --install-extension rkhooda7.bellsy</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a href="https://marketplace.visualstudio.com/items?itemName=rkhooda7.bellsy" target="_blank" rel="noopener noreferrer" class="marketplace-badge">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;vertical-align:middle;color:var(--accent);">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                            <path d="M2 17l10 5 10-5"></path>
+                                            <path d="M2 12l10 5 10-5"></path>
+                                        </svg>
+                                        View in Marketplace
+                                    </a>
+                                </div>
                             </div>
-                            <p class="install-step-text">Open your command palette (<kbd class="kbd-key">⇧⌘P</kbd>) and run <span class="code-inline">"Bellsy: Setup Local Agent Notifications"</span>.</p>
                         </div>
                     </div>
                 </div>

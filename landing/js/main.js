@@ -306,4 +306,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const navVsCodeBtn = document.getElementById('navVsCodeBtn');
+    if (navVsCodeBtn) {
+        navVsCodeBtn.addEventListener('click', () => {
+            const vscodeTab = document.querySelector('.install-tab-btn[data-tab="vscode-install"]');
+            if (vscodeTab && !vscodeTab.classList.contains('active')) {
+                vscodeTab.click();
+            }
+        });
+    }
 });
