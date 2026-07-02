@@ -886,35 +886,14 @@ button, input, select, textarea {
   border-top: 0.5px solid var(--border);
 }
 
+.install-section .section-header {
+  margin-bottom: 32px;
+}
+
 .install-tabs-switcher {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 56px;
-}
-
-.install-tab-btn {
-  background: var(--surface);
-  border: 0.5px solid var(--border);
-  color: var(--text-muted);
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: 14px;
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.install-tab-btn:hover {
-  color: var(--text-primary);
-  border-color: var(--border-muted);
-}
-
-.install-tab-btn.active {
-  background: var(--accent);
-  color: #0C0D0F;
-  border-color: var(--accent);
+  margin-bottom: 40px;
 }
 
 .install-tab-content {

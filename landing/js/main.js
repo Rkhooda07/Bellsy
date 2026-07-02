@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Activate current
             btn.classList.add('active');
+            updateTabSlider(btn.parentElement);
             const targetContent = document.getElementById(targetTab);
             if (targetContent) {
                 targetContent.classList.add('active');
